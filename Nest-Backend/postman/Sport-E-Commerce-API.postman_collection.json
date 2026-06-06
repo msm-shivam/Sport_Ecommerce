@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sport E-Commerce API",
-    "description": "Sport E-Commerce Backend — Layer 1 + Phase 2 Catalog Foundation",
+    "description": "Sport E-Commerce Backend — Layer 1 + Phase 2 Catalog Foundation + Layer 3 Product Module",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,7 +13,9 @@
     { "key": "collectionId", "value": "" },
     { "key": "attributeId", "value": "" },
     { "key": "attributeValueId", "value": "" },
-    { "key": "tagId", "value": "" }
+    { "key": "tagId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "productImageId", "value": "" }
   ],
   "auth": {
     "type": "bearer",
@@ -301,6 +303,128 @@
         {
           "name": "Delete Product Tag",
           "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/product-tags/{{tagId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandId\": \"{{brandId}}\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"subCategoryId\": \"{{subCategoryId}}\",\n  \"name\": \"Nike Air Zoom Pegasus 41\",\n  \"status\": \"DRAFT\",\n  \"shortDescription\": \"Lightweight running shoe\",\n  \"description\": \"The Nike Air Zoom Pegasus 41 is a versatile running shoe.\",\n  \"isFeatured\": false,\n  \"isActive\": true,\n  \"collectionIds\": [],\n  \"tagIds\": []\n}"
+            },
+            "url": "{{baseUrl}}/admin/products"
+          }
+        },
+        {
+          "name": "List Products",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/products?page=1&limit=20" }
+        },
+        {
+          "name": "Get Product By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/products/{{productId}}" }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nike Air Zoom Pegasus 41 - Updated\",\n  \"isFeatured\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/{{productId}}"
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/products/{{productId}}" }
+        },
+        {
+          "name": "Publish Product",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/admin/products/{{productId}}/publish" }
+        },
+        {
+          "name": "Archive Product",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/admin/products/{{productId}}/archive" }
+        },
+        {
+          "name": "Assign Collections",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collectionIds\": [\"{{collectionId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/{{productId}}/collections"
+          }
+        },
+        {
+          "name": "Remove Collection",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/products/{{productId}}/collections/{{collectionId}}" }
+        },
+        {
+          "name": "Assign Tags",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagIds\": [\"{{tagId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/{{productId}}/tags"
+          }
+        },
+        {
+          "name": "Remove Tag",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/products/{{productId}}/tags/{{tagId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Product Images",
+      "item": [
+        {
+          "name": "Add Product Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"imageUrl\": \"https://cdn.sport.com/products/nike-pegasus-41-1.jpg\",\n  \"altText\": \"Nike Air Zoom Pegasus 41 - Front View\",\n  \"sortOrder\": 0,\n  \"isPrimary\": false\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/{{productId}}/images"
+          }
+        },
+        {
+          "name": "Get Product Images",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/products/{{productId}}/images" }
+        },
+        {
+          "name": "Update Product Image",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"altText\": \"Nike Air Zoom Pegasus 41 - Side View\",\n  \"sortOrder\": 1\n}"
+            },
+            "url": "{{baseUrl}}/admin/products/images/{{productImageId}}"
+          }
+        },
+        {
+          "name": "Delete Product Image",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/products/images/{{productImageId}}" }
+        },
+        {
+          "name": "Set Primary Image",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/admin/products/images/{{productImageId}}/primary" }
         }
       ]
     }

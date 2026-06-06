@@ -13,6 +13,8 @@ export enum DefaultPermissions {
   PRODUCT_UPDATE = 'product.update',
   PRODUCT_DELETE = 'product.delete',
   PRODUCT_VIEW = 'product.view',
+  PRODUCT_PUBLISH = 'product.publish',
+  PRODUCT_ARCHIVE = 'product.archive',
   // Inventory
   INVENTORY_VIEW = 'inventory.view',
   INVENTORY_UPDATE = 'inventory.update',

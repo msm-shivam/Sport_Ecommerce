@@ -17,6 +17,8 @@ import { AttributeValue } from '../modules/attribute-values/entities/attribute-v
 import { ProductTag } from '../modules/product-tags/entities/product-tag.entity';
 import { ProductTagMapping } from '../modules/product-tags/entities/product-tag-mapping.entity';
 import { ProductCollection } from '../modules/collections/entities/product-collection.entity';
+import { Product } from '../modules/products/entities/product.entity';
+import { ProductImage } from '../modules/products/entities/product-image.entity';
 
 dotenv.config();
 
@@ -44,6 +46,8 @@ export const AppDataSource = new DataSource({
     ProductTag,
     ProductTagMapping,
     ProductCollection,
+    Product,
+    ProductImage,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

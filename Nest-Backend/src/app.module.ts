@@ -13,6 +13,7 @@ import { CollectionsModule } from './modules/collections/collections.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
 import { AttributeValuesModule } from './modules/attribute-values/attribute-values.module';
 import { ProductTagsModule } from './modules/product-tags/product-tags.module';
+import { ProductsModule } from './modules/products/products.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -32,6 +33,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     AttributesModule,
     AttributeValuesModule,
     ProductTagsModule,
+    ProductsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
