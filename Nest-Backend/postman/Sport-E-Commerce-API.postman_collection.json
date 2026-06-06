@@ -1,0 +1,308 @@
+{
+  "info": {
+    "name": "Sport E-Commerce API",
+    "description": "Sport E-Commerce Backend — Layer 1 + Phase 2 Catalog Foundation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "adminToken", "value": "" },
+    { "key": "brandId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "subCategoryId", "value": "" },
+    { "key": "collectionId", "value": "" },
+    { "key": "attributeId", "value": "" },
+    { "key": "attributeValueId", "value": "" },
+    { "key": "tagId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Admin Auth",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@sport.com\",\n  \"password\": \"SuperAdmin@123\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Brands",
+      "item": [
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nike\",\n  \"description\": \"Just Do It\",\n  \"logo\": \"https://cdn.sport.com/brands/nike.png\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/brands"
+          }
+        },
+        {
+          "name": "List Brands",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/brands?page=1&limit=20" }
+        },
+        {
+          "name": "Get Brand By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/brands/{{brandId}}" }
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Updated description\"\n}" },
+            "url": "{{baseUrl}}/admin/brands/{{brandId}}"
+          }
+        },
+        {
+          "name": "Delete Brand",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/brands/{{brandId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shoes\",\n  \"description\": \"Footwear for all sports\",\n  \"sortOrder\": 0,\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/categories"
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/categories?page=1&limit=20" }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/categories/{{categoryId}}" }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"sortOrder\": 1\n}" },
+            "url": "{{baseUrl}}/admin/categories/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/categories/{{categoryId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Sub Categories",
+      "item": [
+        {
+          "name": "Create Sub Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"name\": \"Running Shoes\",\n  \"sortOrder\": 0,\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/sub-categories"
+          }
+        },
+        {
+          "name": "List Sub Categories",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/sub-categories?categoryId={{categoryId}}" }
+        },
+        {
+          "name": "Get Sub Category By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/sub-categories/{{subCategoryId}}" }
+        },
+        {
+          "name": "Update Sub Category",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Trail Running Shoes\"\n}" },
+            "url": "{{baseUrl}}/admin/sub-categories/{{subCategoryId}}"
+          }
+        },
+        {
+          "name": "Delete Sub Category",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/sub-categories/{{subCategoryId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Collections",
+      "item": [
+        {
+          "name": "Create Collection",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Collection\",\n  \"description\": \"Hot styles for summer\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/admin/collections"
+          }
+        },
+        {
+          "name": "List Collections",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/collections?page=1&limit=20" }
+        },
+        {
+          "name": "Get Collection By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/collections/{{collectionId}}" }
+        },
+        {
+          "name": "Update Collection",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" },
+            "url": "{{baseUrl}}/admin/collections/{{collectionId}}"
+          }
+        },
+        {
+          "name": "Delete Collection",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/collections/{{collectionId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Attributes",
+      "item": [
+        {
+          "name": "Create Attribute",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Color\",\n  \"isFilterable\": true,\n  \"isRequired\": true,\n  \"sortOrder\": 0\n}"
+            },
+            "url": "{{baseUrl}}/admin/attributes"
+          }
+        },
+        {
+          "name": "List Attributes",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/attributes?page=1&limit=20" }
+        },
+        {
+          "name": "Get Attribute By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/attributes/{{attributeId}}" }
+        },
+        {
+          "name": "Update Attribute",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isFilterable\": false\n}" },
+            "url": "{{baseUrl}}/admin/attributes/{{attributeId}}"
+          }
+        },
+        {
+          "name": "Delete Attribute",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/attributes/{{attributeId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Attribute Values",
+      "item": [
+        {
+          "name": "Create Attribute Value",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attributeId\": \"{{attributeId}}\",\n  \"value\": \"Black\",\n  \"sortOrder\": 0\n}"
+            },
+            "url": "{{baseUrl}}/admin/attribute-values"
+          }
+        },
+        {
+          "name": "List Attribute Values",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/attribute-values?attributeId={{attributeId}}" }
+        },
+        {
+          "name": "Get Attribute Value By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/attribute-values/{{attributeValueId}}" }
+        },
+        {
+          "name": "Update Attribute Value",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"value\": \"Jet Black\"\n}" },
+            "url": "{{baseUrl}}/admin/attribute-values/{{attributeValueId}}"
+          }
+        },
+        {
+          "name": "Delete Attribute Value",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/attribute-values/{{attributeValueId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Catalog — Product Tags",
+      "item": [
+        {
+          "name": "Create Product Tag",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Best Seller\"\n}"
+            },
+            "url": "{{baseUrl}}/admin/product-tags"
+          }
+        },
+        {
+          "name": "List Product Tags",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/product-tags?page=1&limit=20" }
+        },
+        {
+          "name": "Get Product Tag By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/product-tags/{{tagId}}" }
+        },
+        {
+          "name": "Update Product Tag",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Trending\"\n}" },
+            "url": "{{baseUrl}}/admin/product-tags/{{tagId}}"
+          }
+        },
+        {
+          "name": "Delete Product Tag",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/admin/product-tags/{{tagId}}" }
+        }
+      ]
+    }
+  ]
+}

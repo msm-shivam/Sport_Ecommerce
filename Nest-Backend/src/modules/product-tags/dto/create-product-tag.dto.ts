@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -8,15 +7,15 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class CreateBrandDto {
-  @ApiProperty({ example: 'Nike' })
+export class CreateProductTagDto {
+  @ApiProperty({ example: 'Best Seller' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
   name: string;
 
   @ApiPropertyOptional({
-    example: 'nike',
+    example: 'best-seller',
     description: 'Auto-generated from name if not provided',
   })
   @IsOptional()
@@ -26,21 +25,4 @@ export class CreateBrandDto {
     message: 'Slug must be lowercase letters, numbers, and hyphens.',
   })
   slug?: string;
-
-  @ApiPropertyOptional({ example: 'https://cdn.sport.com/brands/nike-logo.png' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  logo?: string;
-
-  @ApiPropertyOptional({ example: 'Just Do It' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(2000)
-  description?: string;
-
-  @ApiPropertyOptional({ example: true, default: true })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

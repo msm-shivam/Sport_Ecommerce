@@ -48,6 +48,31 @@ const PERMISSIONS: PermissionDef[] = [
   { slug: DefaultPermissions.PERMISSIONS_MANAGE,   name: 'Manage Permissions',   module: 'rbac' },
   { slug: DefaultPermissions.SUPPORT_VIEW,         name: 'View Support',         module: 'support' },
   { slug: DefaultPermissions.SUPPORT_UPDATE,       name: 'Update Support',       module: 'support' },
+  // Brand
+  { slug: DefaultPermissions.BRAND_CREATE,       name: 'Create Brand',         module: 'brand' },
+  { slug: DefaultPermissions.BRAND_VIEW,         name: 'View Brand',           module: 'brand' },
+  { slug: DefaultPermissions.BRAND_UPDATE,       name: 'Update Brand',         module: 'brand' },
+  { slug: DefaultPermissions.BRAND_DELETE,       name: 'Delete Brand',         module: 'brand' },
+  // Category
+  { slug: DefaultPermissions.CATEGORY_CREATE,    name: 'Create Category',      module: 'category' },
+  { slug: DefaultPermissions.CATEGORY_VIEW,      name: 'View Category',        module: 'category' },
+  { slug: DefaultPermissions.CATEGORY_UPDATE,    name: 'Update Category',      module: 'category' },
+  { slug: DefaultPermissions.CATEGORY_DELETE,    name: 'Delete Category',      module: 'category' },
+  // Collection
+  { slug: DefaultPermissions.COLLECTION_CREATE,  name: 'Create Collection',    module: 'collection' },
+  { slug: DefaultPermissions.COLLECTION_VIEW,    name: 'View Collection',      module: 'collection' },
+  { slug: DefaultPermissions.COLLECTION_UPDATE,  name: 'Update Collection',    module: 'collection' },
+  { slug: DefaultPermissions.COLLECTION_DELETE,  name: 'Delete Collection',    module: 'collection' },
+  // Attribute
+  { slug: DefaultPermissions.ATTRIBUTE_CREATE,   name: 'Create Attribute',     module: 'attribute' },
+  { slug: DefaultPermissions.ATTRIBUTE_VIEW,     name: 'View Attribute',       module: 'attribute' },
+  { slug: DefaultPermissions.ATTRIBUTE_UPDATE,   name: 'Update Attribute',     module: 'attribute' },
+  { slug: DefaultPermissions.ATTRIBUTE_DELETE,   name: 'Delete Attribute',     module: 'attribute' },
+  // Tag
+  { slug: DefaultPermissions.TAG_CREATE,         name: 'Create Tag',           module: 'tag' },
+  { slug: DefaultPermissions.TAG_VIEW,           name: 'View Tag',             module: 'tag' },
+  { slug: DefaultPermissions.TAG_UPDATE,         name: 'Update Tag',           module: 'tag' },
+  { slug: DefaultPermissions.TAG_DELETE,         name: 'Delete Tag',           module: 'tag' },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
@@ -60,6 +85,26 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.PRODUCT_DELETE,
     DefaultPermissions.PRODUCT_VIEW,
     DefaultPermissions.INVENTORY_VIEW,
+    DefaultPermissions.BRAND_CREATE,
+    DefaultPermissions.BRAND_VIEW,
+    DefaultPermissions.BRAND_UPDATE,
+    DefaultPermissions.BRAND_DELETE,
+    DefaultPermissions.CATEGORY_CREATE,
+    DefaultPermissions.CATEGORY_VIEW,
+    DefaultPermissions.CATEGORY_UPDATE,
+    DefaultPermissions.CATEGORY_DELETE,
+    DefaultPermissions.COLLECTION_CREATE,
+    DefaultPermissions.COLLECTION_VIEW,
+    DefaultPermissions.COLLECTION_UPDATE,
+    DefaultPermissions.COLLECTION_DELETE,
+    DefaultPermissions.ATTRIBUTE_CREATE,
+    DefaultPermissions.ATTRIBUTE_VIEW,
+    DefaultPermissions.ATTRIBUTE_UPDATE,
+    DefaultPermissions.ATTRIBUTE_DELETE,
+    DefaultPermissions.TAG_CREATE,
+    DefaultPermissions.TAG_VIEW,
+    DefaultPermissions.TAG_UPDATE,
+    DefaultPermissions.TAG_DELETE,
   ],
   [DefaultRoles.INVENTORY_MANAGER]: [
     DefaultPermissions.INVENTORY_VIEW,

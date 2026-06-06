@@ -2,23 +2,21 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
-  Min,
 } from 'class-validator';
 
-export class CreateCategoryDto {
-  @ApiProperty({ example: 'Shoes' })
+export class CreateCollectionDto {
+  @ApiProperty({ example: 'Summer Collection' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
   name: string;
 
   @ApiPropertyOptional({
-    example: 'shoes',
+    example: 'summer-collection',
     description: 'Auto-generated from name if not provided',
   })
   @IsOptional()
@@ -29,23 +27,17 @@ export class CreateCategoryDto {
   })
   slug?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.sport.com/categories/shoes.jpg' })
+  @ApiPropertyOptional({ example: 'https://cdn.sport.com/collections/summer-banner.jpg' })
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  image?: string;
+  bannerImage?: string;
 
-  @ApiPropertyOptional({ example: 'Footwear for all sports' })
+  @ApiPropertyOptional({ example: 'Hot styles for the summer season' })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
-
-  @ApiPropertyOptional({ example: 0, default: 0 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  sortOrder?: number;
 
   @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()

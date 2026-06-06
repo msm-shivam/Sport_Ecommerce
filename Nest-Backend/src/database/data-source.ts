@@ -8,10 +8,15 @@ import { AdminSession } from '../modules/admin/entities/admin-session.entity';
 import { Role } from '../modules/rbac/entities/role.entity';
 import { Permission } from '../modules/rbac/entities/permission.entity';
 import { OtpVerification } from '../modules/auth/entities/otp-verification.entity';
-import { Category } from '../modules/categories/entities/category.entity';
 import { Brand } from '../modules/brands/entities/brand.entity';
-import { Product } from '../modules/products/entities/product.entity';
-import { ProductImage } from '../modules/products/entities/product-image.entity';
+import { Category } from '../modules/categories/entities/category.entity';
+import { SubCategory } from '../modules/sub-categories/entities/sub-category.entity';
+import { Collection } from '../modules/collections/entities/collection.entity';
+import { Attribute } from '../modules/attributes/entities/attribute.entity';
+import { AttributeValue } from '../modules/attribute-values/entities/attribute-value.entity';
+import { ProductTag } from '../modules/product-tags/entities/product-tag.entity';
+import { ProductTagMapping } from '../modules/product-tags/entities/product-tag-mapping.entity';
+import { ProductCollection } from '../modules/collections/entities/product-collection.entity';
 
 dotenv.config();
 
@@ -30,10 +35,15 @@ export const AppDataSource = new DataSource({
     Role,
     Permission,
     OtpVerification,
-    Category,
     Brand,
-    Product,
-    ProductImage,
+    Category,
+    SubCategory,
+    Collection,
+    Attribute,
+    AttributeValue,
+    ProductTag,
+    ProductTagMapping,
+    ProductCollection,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

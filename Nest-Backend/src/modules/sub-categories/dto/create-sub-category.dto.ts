@@ -5,20 +5,25 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   Min,
 } from 'class-validator';
 
-export class CreateCategoryDto {
-  @ApiProperty({ example: 'Shoes' })
+export class CreateSubCategoryDto {
+  @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @IsUUID('4')
+  categoryId: string;
+
+  @ApiProperty({ example: 'Running Shoes' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
   name: string;
 
   @ApiPropertyOptional({
-    example: 'shoes',
+    example: 'running-shoes',
     description: 'Auto-generated from name if not provided',
   })
   @IsOptional()
@@ -29,13 +34,13 @@ export class CreateCategoryDto {
   })
   slug?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.sport.com/categories/shoes.jpg' })
+  @ApiPropertyOptional({ example: 'https://cdn.sport.com/sub-categories/running.jpg' })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   image?: string;
 
-  @ApiPropertyOptional({ example: 'Footwear for all sports' })
+  @ApiPropertyOptional({ example: 'High-performance running footwear' })
   @IsOptional()
   @IsString()
   @MaxLength(2000)

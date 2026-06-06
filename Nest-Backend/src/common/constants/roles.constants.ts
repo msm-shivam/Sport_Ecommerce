@@ -36,14 +36,29 @@ export enum DefaultPermissions {
   // Support
   SUPPORT_VIEW = 'support.view',
   SUPPORT_UPDATE = 'support.update',
-
-  // Categories
-  CATEGORY_CREATE = 'category.create',
-  CATEGORY_UPDATE = 'category.update',
-  CATEGORY_DELETE = 'category.delete',
-
-  // Brands
+  // Brand
   BRAND_CREATE = 'brand.create',
+  BRAND_VIEW = 'brand.view',
   BRAND_UPDATE = 'brand.update',
   BRAND_DELETE = 'brand.delete',
+  // Category
+  CATEGORY_CREATE = 'category.create',
+  CATEGORY_VIEW = 'category.view',
+  CATEGORY_UPDATE = 'category.update',
+  CATEGORY_DELETE = 'category.delete',
+  // Collection
+  COLLECTION_CREATE = 'collection.create',
+  COLLECTION_VIEW = 'collection.view',
+  COLLECTION_UPDATE = 'collection.update',
+  COLLECTION_DELETE = 'collection.delete',
+  // Attribute
+  ATTRIBUTE_CREATE = 'attribute.create',
+  ATTRIBUTE_VIEW = 'attribute.view',
+  ATTRIBUTE_UPDATE = 'attribute.update',
+  ATTRIBUTE_DELETE = 'attribute.delete',
+  // Tag
+  TAG_CREATE = 'tag.create',
+  TAG_VIEW = 'tag.view',
+  TAG_UPDATE = 'tag.update',
+  TAG_DELETE = 'tag.delete',
 }

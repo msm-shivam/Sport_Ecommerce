@@ -6,6 +6,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { RbacModule } from './modules/rbac/rbac.module';
+import { BrandsModule } from './modules/brands/brands.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { SubCategoriesModule } from './modules/sub-categories/sub-categories.module';
+import { CollectionsModule } from './modules/collections/collections.module';
+import { AttributesModule } from './modules/attributes/attributes.module';
+import { AttributeValuesModule } from './modules/attribute-values/attribute-values.module';
+import { ProductTagsModule } from './modules/product-tags/product-tags.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -18,6 +25,13 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     UsersModule,
     AdminModule,
     RbacModule,
+    BrandsModule,
+    CategoriesModule,
+    SubCategoriesModule,
+    CollectionsModule,
+    AttributesModule,
+    AttributeValuesModule,
+    ProductTagsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

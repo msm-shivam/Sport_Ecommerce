@@ -38,3 +38,20 @@ export const RbacMessages = {
   ROLE_ASSIGNED: 'Role assigned successfully.',
   ROLE_REVOKED: 'Role revoked successfully.',
 };
+
+export const CatalogMessages = {
+  BRAND_NOT_FOUND: 'Brand not found.',
+  BRAND_SLUG_EXISTS: 'A brand with this slug already exists.',
+  CATEGORY_NOT_FOUND: 'Category not found.',
+  CATEGORY_SLUG_EXISTS: 'A category with this slug already exists.',
+  SUB_CATEGORY_NOT_FOUND: 'Sub category not found.',
+  SUB_CATEGORY_SLUG_EXISTS: 'A sub category with this slug already exists.',
+  COLLECTION_NOT_FOUND: 'Collection not found.',
+  COLLECTION_SLUG_EXISTS: 'A collection with this slug already exists.',
+  ATTRIBUTE_NOT_FOUND: 'Attribute not found.',
+  ATTRIBUTE_SLUG_EXISTS: 'An attribute with this slug already exists.',
+  ATTRIBUTE_VALUE_NOT_FOUND: 'Attribute value not found.',
+  ATTRIBUTE_VALUE_SLUG_EXISTS: 'An attribute value with this slug already exists for this attribute.',
+  TAG_NOT_FOUND: 'Product tag not found.',
+  TAG_SLUG_EXISTS: 'A product tag with this slug already exists.',
+};

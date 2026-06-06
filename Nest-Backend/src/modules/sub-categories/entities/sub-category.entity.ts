@@ -3,16 +3,20 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
-  OneToMany,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
-import { SubCategory } from '../../sub-categories/entities/sub-category.entity';
+import { Category } from '../../categories/entities/category.entity';
 
-@Entity('categories')
+@Entity('sub_categories')
 @Index(['slug'], { unique: true })
+@Index(['categoryId'])
 @Index(['sortOrder'])
-@Index(['isActive'])
-export class Category extends BaseEntity {
+export class SubCategory extends BaseEntity {
+  @Column({ name: 'category_id', type: 'uuid' })
+  categoryId: string;
+
   @Column({ length: 150 })
   name: string;
 
@@ -34,6 +38,9 @@ export class Category extends BaseEntity {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date | null;
 
-  @OneToMany(() => SubCategory, (sub) => sub.category)
-  subCategories: SubCategory[];
+  @ManyToOne(() => Category, (category) => category.subCategories, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 }

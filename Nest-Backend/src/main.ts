@@ -47,12 +47,14 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle(APP_NAME)
     .setDescription(
-      'Sport E-Commerce Platform API — Layer 1 Foundation\n\n' +
+      'Sport E-Commerce Platform API — Layer 1 + Catalog Foundation\n\n' +
       '**Base URL:** `/api/v1`\n\n' +
       'All endpoints are prefixed with `/api/v1`.\n\n' +
       '### Authentication\n' +
       '- **Customer JWT** — obtained from `POST /api/v1/auth/login`\n' +
-      '- **Admin JWT** — obtained from `POST /api/v1/admin/auth/login`',
+      '- **Admin JWT** — obtained from `POST /api/v1/admin/auth/login`\n\n' +
+      '### Catalog Admin Endpoints\n' +
+      'All catalog admin routes require **Admin JWT** and the appropriate **permission**.',
     )
     .setVersion(APP_VERSION)
     .addBearerAuth(
@@ -71,6 +73,13 @@ async function bootstrap() {
     .addTag('Customer Profile', 'Customer profile management')
     .addTag('Admin — User Management', 'Admin user CRUD and role assignment')
     .addTag('Admin — RBAC', 'Roles and permissions management')
+    .addTag('Admin — Brands', 'Brand catalog management')
+    .addTag('Admin — Categories', 'Top-level category management')
+    .addTag('Admin — Sub Categories', 'Sub category management')
+    .addTag('Admin — Collections', 'Marketing collection management')
+    .addTag('Admin — Attributes', 'Product attribute management')
+    .addTag('Admin — Attribute Values', 'Attribute value management')
+    .addTag('Admin — Product Tags', 'Marketing tag management')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

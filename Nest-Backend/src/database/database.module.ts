@@ -8,10 +8,15 @@ import { AdminSession } from '../modules/admin/entities/admin-session.entity';
 import { Role } from '../modules/rbac/entities/role.entity';
 import { Permission } from '../modules/rbac/entities/permission.entity';
 import { OtpVerification } from '../modules/auth/entities/otp-verification.entity';
-import { Category } from '../modules/categories/entities/category.entity';
 import { Brand } from '../modules/brands/entities/brand.entity';
-import { Product } from '../modules/products/entities/product.entity';
-import { ProductImage } from '../modules/products/entities/product-image.entity';
+import { Category } from '../modules/categories/entities/category.entity';
+import { SubCategory } from '../modules/sub-categories/entities/sub-category.entity';
+import { Collection } from '../modules/collections/entities/collection.entity';
+import { Attribute } from '../modules/attributes/entities/attribute.entity';
+import { AttributeValue } from '../modules/attribute-values/entities/attribute-value.entity';
+import { ProductTag } from '../modules/product-tags/entities/product-tag.entity';
+import { ProductTagMapping } from '../modules/product-tags/entities/product-tag-mapping.entity';
+import { ProductCollection } from '../modules/collections/entities/product-collection.entity';
 
 @Module({
   imports: [
@@ -36,38 +41,29 @@ import { ProductImage } from '../modules/products/entities/product-image.entity'
             Role,
             Permission,
             OtpVerification,
-            Category,
             Brand,
-            Product,
-            ProductImage,
+            Category,
+            SubCategory,
+            Collection,
+            Attribute,
+            AttributeValue,
+            ProductTag,
+            ProductTagMapping,
+            ProductCollection,
           ],
           migrations: ['dist/database/migrations/*.js'],
           synchronize: false,
           logging: !isProd,
           ssl: isProd ? { rejectUnauthorized: false } : false,
-
-          // ─── Connection Pool ─────────────────────────────────────────────
-          // TypeORM delegates pooling to node-postgres (pg).
-          // A single pool is created once at startup and reused for every
-          // request — no new TCP handshake per query.
           extra: {
-            // Minimum connections kept alive in the pool (always-ready)
             min: 2,
-            // Maximum concurrent connections allowed
             max: isProd ? 20 : 10,
-            // ms to wait for a free connection before throwing (10 s)
             connectionTimeoutMillis: 10_000,
-            // ms an idle connection can sit in the pool before being closed
             idleTimeoutMillis: 30_000,
-            // Reuse connections that were never used (reduces latency)
             allowExitOnIdle: false,
           },
-
-          // ─── Query Cache (in-memory, per DataSource) ──────────────────────
-          // Caches SELECT query results for 5 seconds to avoid repeated
-          // identical reads hitting the database on every request.
           cache: {
-            duration: 5_000, // milliseconds
+            duration: 5_000,
           },
         };
       },
