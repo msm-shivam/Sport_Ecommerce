@@ -9,6 +9,10 @@ import { ProductVariant } from '../product-variants/entities/product-variant.ent
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { AdminOrdersController } from './admin-orders.controller';
+import { AddressesModule } from '../addresses/addresses.module';
+import { WarehousesModule } from '../warehouses/warehouses.module';
+import { DeliverySettingsModule } from '../delivery-settings/delivery-settings.module';
+import { ShipmentsModule } from '../shipments/shipments.module';
 
 @Module({
   imports: [
@@ -20,6 +24,10 @@ import { AdminOrdersController } from './admin-orders.controller';
       Inventory,
       ProductVariant,
     ]),
+    AddressesModule,
+    WarehousesModule,
+    DeliverySettingsModule,
+    ShipmentsModule,
   ],
   controllers: [OrdersController, AdminOrdersController],
   providers: [OrdersService],

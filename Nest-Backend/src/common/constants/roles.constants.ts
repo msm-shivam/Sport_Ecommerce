@@ -46,6 +46,21 @@ export enum DefaultPermissions {
   // Support
   SUPPORT_VIEW = 'support.view',
   SUPPORT_UPDATE = 'support.update',
+  // Address
+  ADDRESS_CREATE = 'address.create',
+  ADDRESS_VIEW = 'address.view',
+  ADDRESS_UPDATE = 'address.update',
+  ADDRESS_DELETE = 'address.delete',
+  // Warehouse
+  WAREHOUSE_CREATE = 'warehouse.create',
+  WAREHOUSE_VIEW = 'warehouse.view',
+  WAREHOUSE_UPDATE = 'warehouse.update',
+  WAREHOUSE_DELETE = 'warehouse.delete',
+  // Delivery
+  DELIVERY_MANAGE = 'delivery.manage',
+  // Shipment
+  SHIPMENT_VIEW = 'shipment.view',
+  SHIPMENT_UPDATE = 'shipment.update',
   // Payment
   PAYMENT_CREATE = 'payment.create',
   PAYMENT_VIEW = 'payment.view',

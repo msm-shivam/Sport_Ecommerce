@@ -170,6 +170,65 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Update Support',
     module: 'support',
   },
+  // Address
+  {
+    slug: DefaultPermissions.ADDRESS_CREATE,
+    name: 'Create Address',
+    module: 'address',
+  },
+  {
+    slug: DefaultPermissions.ADDRESS_VIEW,
+    name: 'View Address',
+    module: 'address',
+  },
+  {
+    slug: DefaultPermissions.ADDRESS_UPDATE,
+    name: 'Update Address',
+    module: 'address',
+  },
+  {
+    slug: DefaultPermissions.ADDRESS_DELETE,
+    name: 'Delete Address',
+    module: 'address',
+  },
+  // Warehouse
+  {
+    slug: DefaultPermissions.WAREHOUSE_CREATE,
+    name: 'Create Warehouse',
+    module: 'warehouse',
+  },
+  {
+    slug: DefaultPermissions.WAREHOUSE_VIEW,
+    name: 'View Warehouse',
+    module: 'warehouse',
+  },
+  {
+    slug: DefaultPermissions.WAREHOUSE_UPDATE,
+    name: 'Update Warehouse',
+    module: 'warehouse',
+  },
+  {
+    slug: DefaultPermissions.WAREHOUSE_DELETE,
+    name: 'Delete Warehouse',
+    module: 'warehouse',
+  },
+  // Delivery
+  {
+    slug: DefaultPermissions.DELIVERY_MANAGE,
+    name: 'Manage Delivery',
+    module: 'delivery',
+  },
+  // Shipment
+  {
+    slug: DefaultPermissions.SHIPMENT_VIEW,
+    name: 'View Shipments',
+    module: 'shipment',
+  },
+  {
+    slug: DefaultPermissions.SHIPMENT_UPDATE,
+    name: 'Update Shipments',
+    module: 'shipment',
+  },
   // Payment
   {
     slug: DefaultPermissions.PAYMENT_CREATE,
@@ -365,6 +424,10 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.ORDER_UPDATE,
     DefaultPermissions.ORDER_CANCEL,
     DefaultPermissions.PAYMENT_VIEW,
+    DefaultPermissions.WAREHOUSE_VIEW,
+    DefaultPermissions.SHIPMENT_VIEW,
+    DefaultPermissions.SHIPMENT_UPDATE,
+    DefaultPermissions.DELIVERY_MANAGE,
     DefaultPermissions.USER_VIEW,
   ],
   [DefaultRoles.FINANCE_MANAGER]: [

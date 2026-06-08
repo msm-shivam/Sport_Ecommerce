@@ -26,6 +26,9 @@ export class OrderResponseDto {
   @Expose() @ApiProperty() shippingAmount: number;
   @Expose() @ApiProperty() taxAmount: number;
   @Expose() @ApiProperty() totalAmount: number;
+  @Expose() @ApiPropertyOptional() shippingAddressId: string | null;
+  @Expose() @ApiPropertyOptional() warehouseId: string | null;
+  @Expose() @ApiPropertyOptional() distanceKm: number | null;
   @Expose() @ApiPropertyOptional() notes: string | null;
   @Expose()
   @Type(() => OrderItemResponseDto)

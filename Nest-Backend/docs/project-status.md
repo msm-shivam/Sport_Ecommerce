@@ -728,4 +728,162 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 - EMI Processing
 - Marketplace Split Payments
 
+---
+
+## Layer 8 — Shipping & Delivery Management (Complete)
+
+| Module | Status | Started | Completed |
+|--------|--------|---------|-----------|
+| Address Management | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Warehouse Management | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Delivery Settings | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Shipment Management | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Checkout Integration | ✅ Complete | 2026-06-08 | 2026-06-08 |
+
+### Phase 8 Deliverables
+
+- [x] Address Entity (userId, fullName, phone, addressLine1/2, city, state, country, postalCode, lat/lng, isDefault)
+- [x] Warehouse Entity (name, code, phone, email, address, city, state, country, postalCode, lat/lng, isActive)
+- [x] DeliverySetting Entity (perKmCharge, freeShippingThreshold, maxDeliveryDistanceKm, isActive)
+- [x] Shipment Entity (orderId, warehouseId, trackingNumber, status, notes, dispatchedAt, deliveredAt)
+- [x] ShipmentTrackingLog Entity (shipmentId, status, note, changedBy)
+- [x] ShipmentStatus Enum (PENDING, PACKED, READY_FOR_DISPATCH, OUT_FOR_DELIVERY, DELIVERED, FAILED_DELIVERY)
+- [x] Order entity extended (shippingAddressId, warehouseId, distanceKm)
+- [x] DTOs (CreateAddress, UpdateAddress, AddressResponse, CreateWarehouse, UpdateWarehouse, WarehouseResponse, UpdateDeliverySetting, DeliverySettingResponse, UpdateShipmentStatus, ShipmentResponse, ShipmentQuery)
+- [x] AddressesService (CRUD, setDefault, ownership check, single default)
+- [x] WarehousesService (CRUD, code uniqueness, findNearest with Haversine)
+- [x] DeliverySettingsService (getOrCreate singleton, update, calculateCharge, isServiceable)
+- [x] ShipmentsService (createShipment, findByOrder, findAll, findOne, updateStatus with auto-logging)
+- [x] AddressesController (customer: POST, GET list, GET by id, PATCH, DELETE, PATCH default)
+- [x] WarehousesController (admin: CRUD with RBAC)
+- [x] DeliverySettingsController (admin: GET, PATCH with RBAC)
+- [x] ShipmentsController (customer: GET by order)
+- [x] AdminShipmentsController (admin: GET list, GET by id, PATCH status)
+- [x] Checkout Integration (validate address, find nearest warehouse, Haversine distance, calculate charge, delivery area check, create shipment)
+- [x] Haversine Distance Formula (accurate to 2 decimal places)
+- [x] Delivery Charge Calculation (distance × perKmCharge, free shipping threshold)
+- [x] Maximum Delivery Distance Guard (400 if not serviceable)
+- [x] Each module registered (Addresses, Warehouses, DeliverySettings, Shipments)
+- [x] Migration (addresses, warehouses, delivery_settings, shipments, shipment_tracking_logs + orders shipping columns)
+- [x] Permission seeds (10 new permissions: address.*, warehouse.*, delivery.manage, shipment.*)
+- [x] Role mappings (ORDER_MANAGER gets warehouse.view + shipment.* + delivery.manage)
+- [x] Swagger documentation (all endpoints documented)
+- [x] RBAC integration (AdminJwtGuard + PermissionsGuard on all admin endpoints)
+- [x] Zero TypeScript build errors
+- [x] Automated tracking log creation on status changes
+
+### Business Rules Implemented
+
+| Rule | Description |
+|------|-------------|
+| Single Default Address | Only one address marked as default per user |
+| Address Ownership | Customer can only CRUD their own addresses |
+| Warehouse Code Unique | Enforced at DB + service level |
+| Soft Delete | Addresses and warehouses support soft delete |
+| Nearest Warehouse | Haversine formula selects the closest active warehouse |
+| Distance Calculation | `distance = haversine(warehouse.lat/lng, address.lat/lng)` |
+| Delivery Charge | `charge = distance × perKmCharge` |
+| Free Shipping | Charge = 0 if order amount ≥ free shipping threshold |
+| Area Guard | 400 Bad Request if distance > maxDeliveryDistanceKm |
+| Auto Shipment | Shipment created automatically on order placement |
+| Auto Tracking Logs | Log entry created on every shipment status change |
+| DISPATCH/DELIVER Timestamps | dispatchedAt set on OUT_FOR_DELIVERY; deliveredAt set on DELIVERED |
+
+### API Endpoints
+
+#### Addresses (Customer) — `/api/v1/addresses`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| POST | /addresses | Customer JWT | ✅ |
+| GET | /addresses | Customer JWT | ✅ |
+| GET | /addresses/:id | Customer JWT | ✅ |
+| PATCH | /addresses/:id | Customer JWT | ✅ |
+| DELETE | /addresses/:id | Customer JWT | ✅ |
+| PATCH | /addresses/:id/default | Customer JWT | ✅ |
+
+#### Warehouses (Admin) — `/api/v1/admin/warehouses`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| POST | /admin/warehouses | Admin JWT + warehouse.create | ✅ |
+| GET | /admin/warehouses | Admin JWT + warehouse.view | ✅ |
+| GET | /admin/warehouses/:id | Admin JWT + warehouse.view | ✅ |
+| PATCH | /admin/warehouses/:id | Admin JWT + warehouse.update | ✅ |
+| DELETE | /admin/warehouses/:id | Admin JWT + warehouse.delete | ✅ |
+
+#### Delivery Settings (Admin) — `/api/v1/admin/delivery-settings`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /admin/delivery-settings | Admin JWT + delivery.manage | ✅ |
+| PATCH | /admin/delivery-settings | Admin JWT + delivery.manage | ✅ |
+
+#### Shipments (Customer) — `/api/v1/shipments`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /shipments/:orderId | Customer JWT | ✅ |
+
+#### Shipments (Admin) — `/api/v1/admin/shipments`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /admin/shipments | Admin JWT + shipment.view | ✅ |
+| GET | /admin/shipments/:id | Admin JWT + shipment.view | ✅ |
+| PATCH | /admin/shipments/:id/status | Admin JWT + shipment.update | ✅ |
+
+### Database Tables (Layer 8)
+
+| Table | Status |
+|-------|--------|
+| addresses | ✅ Entity + Migration |
+| warehouses | ✅ Entity + Migration |
+| delivery_settings | ✅ Entity + Migration |
+| shipments | ✅ Entity + Migration |
+| shipment_tracking_logs | ✅ Entity + Migration |
+
+### Migration Details
+
+**Migration:** `1749200800000-Phase8ShippingAndDelivery.ts`
+
+**Tables Created:**
+- `addresses` — id, user_id (FK→users), full_name, phone, address_line_1, address_line_2, city, state, country, postal_code, latitude, longitude, is_default, timestamps, deleted_at
+- `warehouses` — id, name, code (unique), phone, email, address, city, state, country, postal_code, latitude, longitude, is_active, timestamps, deleted_at
+- `delivery_settings` — id, per_km_charge, free_shipping_threshold, max_delivery_distance_km, is_active, updated_by, timestamps
+- `shipments` — id, order_id (FK→orders), warehouse_id (FK→warehouses), tracking_number (unique), status, notes, dispatched_at, delivered_at, timestamps
+- `shipment_tracking_logs` — id, shipment_id (FK→shipments), status, note, changed_by, created_at
+
+**Columns Added to `orders`:**
+- `shipping_address_id` (FK→addresses, nullable)
+- `warehouse_id` (FK→warehouses, nullable)
+- `distance_km` (decimal, nullable)
+
+### Permissions Added
+
+| Permission | Slug |
+|------------|------|
+| Create Address | `address.create` |
+| View Address | `address.view` |
+| Update Address | `address.update` |
+| Delete Address | `address.delete` |
+| Create Warehouse | `warehouse.create` |
+| View Warehouse | `warehouse.view` |
+| Update Warehouse | `warehouse.update` |
+| Delete Warehouse | `warehouse.delete` |
+| Manage Delivery | `delivery.manage` |
+| View Shipments | `shipment.view` |
+| Update Shipments | `shipment.update` |
+
+### Layer 8 Out of Scope
+
+- Third-party courier APIs (Shiprocket, Delhivery, BlueDart)
+- Return Management
+- Exchange Management
+- Pickup Scheduling
+- Multi-Warehouse Inventory Allocation
+- Delivery Partner Mobile App
+- Route Optimization
+- Subscription Delivery
+
 

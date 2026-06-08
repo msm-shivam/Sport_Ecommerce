@@ -20,6 +20,10 @@ import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { ProductVariant } from '../product-variants/entities/product-variant.entity';
+import { AddressesService } from '../addresses/addresses.service';
+import { WarehousesService } from '../warehouses/warehouses.service';
+import { DeliverySettingsService } from '../delivery-settings/delivery-settings.service';
+import { ShipmentsService } from '../shipments/shipments.service';
 import { paginate } from '../../common/utils/pagination.util';
 
 @Injectable()
@@ -37,6 +41,10 @@ export class OrdersService {
     private readonly inventoryRepo: Repository<Inventory>,
     @InjectRepository(ProductVariant)
     private readonly variantRepo: Repository<ProductVariant>,
+    private readonly addressesService: AddressesService,
+    private readonly warehousesService: WarehousesService,
+    private readonly deliverySettingsService: DeliverySettingsService,
+    private readonly shipmentsService: ShipmentsService,
   ) {}
 
   async createOrder(
@@ -50,6 +58,11 @@ export class OrdersService {
     if (!cart) throw new BadRequestException('Cart not found.');
     if (!cart.items || cart.items.length === 0) {
       throw new BadRequestException('Cart is empty.');
+    }
+
+    const address = await this.addressesService.findById(dto.shippingAddressId);
+    if (address.userId !== userId) {
+      throw new BadRequestException('Address does not belong to user.');
     }
 
     for (const cartItem of cart.items) {
@@ -77,17 +90,48 @@ export class OrdersService {
       }
     }
 
+    const warehouse = await this.warehousesService.findNearest(
+      address.latitude,
+      address.longitude,
+    );
+
+    const distanceKm = this.haversine(
+      address.latitude,
+      address.longitude,
+      warehouse.latitude,
+      warehouse.longitude,
+    );
+
+    const settings = await this.deliverySettingsService.getActive();
+
+    if (!this.deliverySettingsService.isServiceable(distanceKm, settings)) {
+      throw new BadRequestException('Delivery not available in your area.');
+    }
+
+    const subtotal = Number(cart.subtotal);
+    const shippingAmount = this.deliverySettingsService.calculateCharge(
+      distanceKm,
+      subtotal,
+      settings,
+    );
+    const taxAmount = 0;
+    const discountAmount = 0;
+    const totalAmount = subtotal + shippingAmount + taxAmount - discountAmount;
+
     const orderNumber = await this.generateOrderNumber();
 
     const order = this.orderRepo.create({
       orderNumber,
       userId,
       status: OrderStatus.PENDING,
-      subtotal: Number(cart.subtotal),
-      discountAmount: 0,
-      shippingAmount: 0,
-      taxAmount: 0,
-      totalAmount: Number(cart.subtotal),
+      subtotal,
+      discountAmount,
+      shippingAmount,
+      shippingAddressId: dto.shippingAddressId,
+      warehouseId: warehouse.id,
+      distanceKm,
+      taxAmount,
+      totalAmount,
       notes: dto.notes ?? null,
     });
     const savedOrder = await this.orderRepo.save(order);
@@ -122,6 +166,8 @@ export class OrdersService {
       }
     }
     await this.orderItemRepo.save(orderItems);
+
+    await this.shipmentsService.createShipment(savedOrder.id, warehouse.id);
 
     await this.cartItemRepo.remove(cart.items);
     cart.subtotal = 0;
@@ -261,6 +307,29 @@ export class OrdersService {
       message: 'Order cancelled successfully.',
       data: this.toResponse(saved),
     };
+  }
+
+  private haversine(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371;
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) *
+        Math.cos(this.toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c * 100) / 100;
+  }
+
+  private toRad(deg: number): number {
+    return (deg * Math.PI) / 180;
   }
 
   async generateOrderNumber(): Promise<string> {

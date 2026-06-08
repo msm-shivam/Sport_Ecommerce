@@ -31,6 +31,11 @@ import { Payment } from '../modules/payments/entities/payment.entity';
 import { PaymentRefund } from '../modules/payments/entities/payment-refund.entity';
 import { PaymentLog } from '../modules/payments/entities/payment-log.entity';
 import { PaymentWebhook } from '../modules/payments/entities/payment-webhook.entity';
+import { Address } from '../modules/addresses/entities/address.entity';
+import { Warehouse } from '../modules/warehouses/entities/warehouse.entity';
+import { DeliverySetting } from '../modules/delivery-settings/entities/delivery-setting.entity';
+import { Shipment } from '../modules/shipments/entities/shipment.entity';
+import { ShipmentTrackingLog } from '../modules/shipments/entities/shipment-tracking-log.entity';
 
 dotenv.config();
 
@@ -72,6 +77,11 @@ export const AppDataSource = new DataSource({
     PaymentRefund,
     PaymentLog,
     PaymentWebhook,
+    Address,
+    Warehouse,
+    DeliverySetting,
+    Shipment,
+    ShipmentTrackingLog,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

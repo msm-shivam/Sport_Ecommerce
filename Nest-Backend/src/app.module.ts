@@ -19,6 +19,10 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { AddressesModule } from './modules/addresses/addresses.module';
+import { WarehousesModule } from './modules/warehouses/warehouses.module';
+import { DeliverySettingsModule } from './modules/delivery-settings/delivery-settings.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -44,6 +48,10 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     CartModule,
     OrdersModule,
     PaymentsModule,
+    AddressesModule,
+    WarehousesModule,
+    DeliverySettingsModule,
+    ShipmentsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

@@ -10,6 +10,8 @@ import { BaseEntity } from '../../../shared/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
 import { PaymentStatus } from '../../payments/entities/payment-status.enum';
+import { Address } from '../../addresses/entities/address.entity';
+import { Warehouse } from '../../warehouses/entities/warehouse.entity';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -58,6 +60,29 @@ export class Order extends BaseEntity {
     default: 0,
   })
   discountAmount: number;
+
+  @Column({ name: 'shipping_address_id', type: 'uuid', nullable: true })
+  shippingAddressId: string | null;
+
+  @ManyToOne(() => Address, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'shipping_address_id' })
+  shippingAddress: Address | null;
+
+  @Column({ name: 'warehouse_id', type: 'uuid', nullable: true })
+  warehouseId: string | null;
+
+  @ManyToOne(() => Warehouse, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'warehouse_id' })
+  warehouse: Warehouse | null;
+
+  @Column({
+    name: 'distance_km',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
+  distanceKm: number | null;
 
   @Column({
     name: 'shipping_amount',
