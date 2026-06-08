@@ -46,6 +46,20 @@ export enum DefaultPermissions {
   // Support
   SUPPORT_VIEW = 'support.view',
   SUPPORT_UPDATE = 'support.update',
+  // Payment
+  PAYMENT_CREATE = 'payment.create',
+  PAYMENT_VIEW = 'payment.view',
+  PAYMENT_UPDATE = 'payment.update',
+  PAYMENT_DELETE = 'payment.delete',
+  // Refund
+  REFUND_CREATE = 'refund.create',
+  REFUND_VIEW = 'refund.view',
+  REFUND_UPDATE = 'refund.update',
+  // Payment Method
+  PAYMENT_METHOD_CREATE = 'payment_method.create',
+  PAYMENT_METHOD_VIEW = 'payment_method.view',
+  PAYMENT_METHOD_UPDATE = 'payment_method.update',
+  PAYMENT_METHOD_DELETE = 'payment_method.delete',
   // Brand
   BRAND_CREATE = 'brand.create',
   BRAND_VIEW = 'brand.view',

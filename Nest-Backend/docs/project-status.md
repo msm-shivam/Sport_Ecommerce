@@ -586,4 +586,146 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 - orders: user_id, order_number (unique), status, created_at
 - order_items: order_id, variant_id
 
+---
+
+## Layer 7 — Payments & Transactions with Stripe Integration (Complete)
+
+| Module | Status | Started | Completed |
+|--------|--------|---------|-----------|
+| Payment Methods | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Stripe Integration | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Payments | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Refunds | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Payment Logs | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Payment Webhooks | ✅ Complete | 2026-06-08 | 2026-06-08 |
+| Order Payment Sync | ✅ Complete | 2026-06-08 | 2026-06-08 |
+
+### Phase 7 Deliverables
+
+- [x] PaymentMethod Entity (name, code, description, isActive, sortOrder)
+- [x] Payment Entity (order, method, transaction number, amount, status, Stripe IDs, gateway response)
+- [x] PaymentRefund Entity (payment, Stripe refund ID, amount, reason, processed by)
+- [x] PaymentLog Entity (payment, action, message, performed by)
+- [x] PaymentWebhook Entity (event ID, type, payload, processed)
+- [x] PaymentStatus Enum (PENDING, PROCESSING, PAID, FAILED, CANCELLED, REFUNDED, PARTIALLY_REFUNDED)
+- [x] Order entity extended (paymentStatus, paidAmount, dueAmount)
+- [x] DTOs (CreatePaymentIntent, ConfirmPayment, CreateRefund, Create/Update PaymentMethod, PaymentQuery, PaymentResponse)
+- [x] StripeService (createPaymentIntent, retrievePaymentIntent, createRefund, constructWebhookEvent)
+- [x] PaymentsService (createIntent, confirmPayment, handleWebhook, CRUD, order sync, customer payments)
+- [x] RefundsService (full refund, partial refund, status updates)
+- [x] PaymentMethodsService (CRUD with code uniqueness)
+- [x] PaymentsController (POST create-intent, POST confirm, POST webhook — public)
+- [x] AdminPaymentsController (GET list, GET by id, PATCH notes, POST refund)
+- [x] CustomerPaymentsController (GET my payments, GET order payment)
+- [x] PaymentMethodsController (admin CRUD)
+- [x] PaymentsModule (all services, controllers, TypeOrm imports)
+- [x] Migration (payment_methods, payments, payment_refunds, payment_logs, payment_webhooks + orders columns)
+- [x] Permission seeds (11 new permissions: payment.*, refund.*, payment_method.*)
+- [x] Role mappings (ORDER_MANAGER gets payment.view; FINANCE_MANAGER gets payment + refund permissions)
+- [x] Swagger documentation (all endpoints documented)
+- [x] RBAC integration (AdminJwtGuard + PermissionsGuard on admin endpoints)
+- [x] Stripe SDK installed (v22)
+- [x] Zero TypeScript build errors
+
+### Business Rules Implemented
+
+| Rule | Description |
+|------|-------------|
+| One Payment Per Intent | Reuses existing PENDING payment for same order |
+| Duplicate Payment Prevention | Blocks create-intent if order already PAID |
+| Status Sync | Payment status changes sync to Order.paymentStatus |
+| Paid/Due Amounts | Order.paidAmount and dueAmount recalculated on every status change |
+| Full Refund | Entire payment amount refunded, status → REFUNDED |
+| Partial Refund | Partial amount refunded, status → PARTIALLY_REFUNDED |
+| Refund Validation | Cannot exceed remaining balance; cannot refund already refunded payment |
+| Webhook Processing | Handles payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, charge.dispute.created |
+| Payment Logs | Every payment action (create intent, success, failure, refund) is logged |
+| Stripe Fallback | Webhook signature verification attempted; falls back to raw parsing if Stripe not configured |
+
+### API Endpoints
+
+#### Payment Methods (Admin) — `/api/v1/admin/payment-methods`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| POST | /admin/payment-methods | Admin JWT + payment_method.create | ✅ |
+| GET | /admin/payment-methods | Admin JWT + payment_method.view | ✅ |
+| GET | /admin/payment-methods/:id | Admin JWT + payment_method.view | ✅ |
+| PATCH | /admin/payment-methods/:id | Admin JWT + payment_method.update | ✅ |
+| DELETE | /admin/payment-methods/:id | Admin JWT + payment_method.delete | ✅ |
+
+#### Stripe Payments — `/api/v1/payments`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| POST | /payments/create-intent | Customer JWT | ✅ |
+| POST | /payments/confirm | Customer JWT | ✅ |
+| POST | /payments/webhook | Public | ✅ |
+
+#### Payments (Admin) — `/api/v1/admin/payments`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /admin/payments | Admin JWT + payment.view | ✅ |
+| GET | /admin/payments/:id | Admin JWT + payment.view | ✅ |
+| PATCH | /admin/payments/:id | Admin JWT + payment.update | ✅ |
+| POST | /admin/payments/:id/refund | Admin JWT + refund.create | ✅ |
+
+#### Customer Payments — `/api/v1/payments`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /payments | Customer JWT | ✅ |
+| GET | /payments/order/:orderId | Customer JWT | ✅ |
+
+### Database Tables (Layer 7)
+
+| Table | Status |
+|-------|--------|
+| payment_methods | ✅ Entity + Migration |
+| payments | ✅ Entity + Migration |
+| payment_refunds | ✅ Entity + Migration |
+| payment_logs | ✅ Entity + Migration |
+| payment_webhooks | ✅ Entity + Migration |
+
+### Migration Details
+
+**Migration:** `1749200700000-Phase7PaymentsAndTransactions.ts`
+
+**Tables Created:**
+- `payment_methods` — id, name, code (unique), description, is_active, sort_order, timestamps
+- `payments` — id, order_id (FK→orders), payment_method_id (FK→payment_methods), transaction_number (unique), amount, status, stripe_payment_intent_id, stripe_charge_id, gateway_status, gateway_response (jsonb), notes, paid_at, timestamps
+- `payment_refunds` — id, payment_id (FK→payments), stripe_refund_id, refund_amount, reason, notes, processed_by, processed_at, created_at
+- `payment_logs` — id, payment_id (FK→payments), action, message, performed_by, created_at
+- `payment_webhooks` — id, event_id (unique), event_type, payload (jsonb), processed, processed_at, created_at
+
+**Columns Added to `orders`:**
+- `payment_status` (varchar, default 'PENDING')
+- `paid_amount` (decimal, default 0)
+- `due_amount` (decimal, default 0)
+
+### Permissions Added
+
+| Permission | Slug |
+|------------|------|
+| Create Payment | `payment.create` |
+| View Payment | `payment.view` |
+| Update Payment | `payment.update` |
+| Delete Payment | `payment.delete` |
+| Create Refund | `refund.create` |
+| View Refund | `refund.view` |
+| Update Refund | `refund.update` |
+| Create Payment Method | `payment_method.create` |
+| View Payment Method | `payment_method.view` |
+| Update Payment Method | `payment_method.update` |
+| Delete Payment Method | `payment_method.delete` |
+
+### Layer 7 Out of Scope
+
+- PayPal
+- Subscription Billing
+- Wallet System
+- EMI Processing
+- Marketplace Split Payments
+
 

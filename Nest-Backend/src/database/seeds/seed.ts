@@ -170,6 +170,64 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Update Support',
     module: 'support',
   },
+  // Payment
+  {
+    slug: DefaultPermissions.PAYMENT_CREATE,
+    name: 'Create Payment',
+    module: 'payment',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_VIEW,
+    name: 'View Payment',
+    module: 'payment',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_UPDATE,
+    name: 'Update Payment',
+    module: 'payment',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_DELETE,
+    name: 'Delete Payment',
+    module: 'payment',
+  },
+  // Refund
+  {
+    slug: DefaultPermissions.REFUND_CREATE,
+    name: 'Create Refund',
+    module: 'refund',
+  },
+  {
+    slug: DefaultPermissions.REFUND_VIEW,
+    name: 'View Refund',
+    module: 'refund',
+  },
+  {
+    slug: DefaultPermissions.REFUND_UPDATE,
+    name: 'Update Refund',
+    module: 'refund',
+  },
+  // Payment Method
+  {
+    slug: DefaultPermissions.PAYMENT_METHOD_CREATE,
+    name: 'Create Payment Method',
+    module: 'payment_method',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_METHOD_VIEW,
+    name: 'View Payment Method',
+    module: 'payment_method',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_METHOD_UPDATE,
+    name: 'Update Payment Method',
+    module: 'payment_method',
+  },
+  {
+    slug: DefaultPermissions.PAYMENT_METHOD_DELETE,
+    name: 'Delete Payment Method',
+    module: 'payment_method',
+  },
   // Brand
   {
     slug: DefaultPermissions.BRAND_CREATE,
@@ -306,12 +364,18 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.ORDER_VIEW,
     DefaultPermissions.ORDER_UPDATE,
     DefaultPermissions.ORDER_CANCEL,
+    DefaultPermissions.PAYMENT_VIEW,
     DefaultPermissions.USER_VIEW,
   ],
   [DefaultRoles.FINANCE_MANAGER]: [
     DefaultPermissions.FINANCE_VIEW,
     DefaultPermissions.FINANCE_EXPORT,
     DefaultPermissions.ORDER_VIEW,
+    DefaultPermissions.PAYMENT_VIEW,
+    DefaultPermissions.PAYMENT_UPDATE,
+    DefaultPermissions.REFUND_VIEW,
+    DefaultPermissions.REFUND_CREATE,
+    DefaultPermissions.REFUND_UPDATE,
   ],
   [DefaultRoles.SUPPORT_MANAGER]: [
     DefaultPermissions.SUPPORT_VIEW,

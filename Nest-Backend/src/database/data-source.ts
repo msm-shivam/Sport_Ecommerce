@@ -26,6 +26,11 @@ import { Cart } from '../modules/cart/entities/cart.entity';
 import { CartItem } from '../modules/cart/entities/cart-item.entity';
 import { Order } from '../modules/orders/entities/order.entity';
 import { OrderItem } from '../modules/orders/entities/order-item.entity';
+import { PaymentMethod } from '../modules/payments/entities/payment-method.entity';
+import { Payment } from '../modules/payments/entities/payment.entity';
+import { PaymentRefund } from '../modules/payments/entities/payment-refund.entity';
+import { PaymentLog } from '../modules/payments/entities/payment-log.entity';
+import { PaymentWebhook } from '../modules/payments/entities/payment-webhook.entity';
 
 dotenv.config();
 
@@ -62,6 +67,11 @@ export const AppDataSource = new DataSource({
     CartItem,
     Order,
     OrderItem,
+    PaymentMethod,
+    Payment,
+    PaymentRefund,
+    PaymentLog,
+    PaymentWebhook,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
