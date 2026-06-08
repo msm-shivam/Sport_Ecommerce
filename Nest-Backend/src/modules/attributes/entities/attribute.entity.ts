@@ -1,7 +1,6 @@
 import { Column, DeleteDateColumn, Entity, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { AttributeValue } from '../../attribute-values/entities/attribute-value.entity';
-import { ProductVariantAttribute } from '../../product-variants/entities/product-variant-attribute.entity';
 
 @Entity('attributes')
 @Index(['slug'], { unique: true })
@@ -27,10 +26,4 @@ export class Attribute extends BaseEntity {
 
   @OneToMany(() => AttributeValue, (value) => value.attribute)
   values: AttributeValue[];
-
-  @OneToMany(
-    () => ProductVariantAttribute,
-    (variantAttribute) => variantAttribute.attribute,
-  )
-  variantAttributes: ProductVariantAttribute[];
 }

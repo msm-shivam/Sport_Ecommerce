@@ -33,7 +33,7 @@ export class ProductVariantAttribute {
   @Column({ name: 'attribute_id', type: 'uuid' })
   attributeId: string;
 
-  @ManyToOne(() => Attribute, (attribute) => attribute.variantAttributes, {
+  @ManyToOne(() => Attribute, {
     onDelete: 'CASCADE',
   })
   attribute: Attribute;
@@ -41,13 +41,9 @@ export class ProductVariantAttribute {
   @Column({ name: 'attribute_value_id', type: 'uuid' })
   attributeValueId: string;
 
-  @ManyToOne(
-    () => AttributeValue,
-    (attributeValue) => attributeValue.variantAttributes,
-    {
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => AttributeValue, {
+    onDelete: 'CASCADE',
+  })
   attributeValue: AttributeValue;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })

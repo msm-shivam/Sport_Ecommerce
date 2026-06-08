@@ -5,11 +5,9 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  OneToMany,
 } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { Attribute } from '../../attributes/entities/attribute.entity';
-import { ProductVariantAttribute } from '../../product-variants/entities/product-variant-attribute.entity';
 
 @Entity('attribute_values')
 @Index(['attributeId', 'slug'], { unique: true })
@@ -37,10 +35,4 @@ export class AttributeValue extends BaseEntity {
   })
   @JoinColumn({ name: 'attribute_id' })
   attribute: Attribute;
-
-  @OneToMany(
-    () => ProductVariantAttribute,
-    (variantAttribute) => variantAttribute.attributeValue,
-  )
-  variantAttributes: ProductVariantAttribute[];
 }
