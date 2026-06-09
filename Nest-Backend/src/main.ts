@@ -98,6 +98,9 @@ async function bootstrap() {
     .addTag('Admin Coupons', 'Coupon code management')
     .addTag('Admin Promotions', 'Promotion campaign management')
     .addTag('Customer Coupons', 'Customer coupon application and validation')
+    .addTag('Wishlist', 'Customer product wishlist management')
+    .addTag('Reviews', 'Customer product reviews and ratings')
+    .addTag('Admin — Reviews', 'Admin review moderation (approve/reject)')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

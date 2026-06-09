@@ -1010,7 +1010,83 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | Update Promotion | `promotion.update` |
 | Delete Promotion | `promotion.delete` |
 
-### Layer 9 Out of Scope
+### Layer 10 — Wishlist, Reviews & Ratings Management (In Progress)
+
+| Module | Status | Started | Completed |
+|--------|--------|---------|-----------|
+| Wishlist | 🔄 In Progress | 2026-06-08 | — |
+| Reviews & Ratings | 🔄 In Progress | 2026-06-08 | — |
+| Review Moderation | 🔄 In Progress | 2026-06-08 | — |
+| Review Images | 🔄 In Progress | 2026-06-08 | — |
+
+### Phase 10 Deliverables
+
+- [ ] ReviewStatus Enum
+- [ ] Wishlist Entity
+- [ ] WishlistItem Entity
+- [ ] Review Entity
+- [ ] ReviewImage Entity
+- [ ] Product entity extended (average_rating, review_count)
+- [ ] DTOs (CreateReview, UpdateReview, WishlistResponse, ReviewResponse)
+- [ ] WishlistService (getOrCreate, add, remove, find)
+- [ ] ReviewsService (create, update, find, approve, reject, rating aggregation)
+- [ ] WishlistController (GET, POST, DELETE)
+- [ ] ReviewsController (customer: POST, GET, PATCH, DELETE)
+- [ ] AdminReviewsController (admin: GET, PATCH approve/reject, DELETE)
+- [ ] WishlistModule
+- [ ] ReviewsModule
+- [ ] Migration Phase10 (wishlists, wishlist_items, reviews, review_images + product columns)
+- [ ] Permissions (wishlist.view, review.*)
+- [ ] Role mappings (SUPPORT_MANAGER gets review.view)
+- [ ] Module registration in app.module.ts + data-source.ts
+- [ ] Swagger tags in main.ts
+- [ ] Zero TypeScript build errors
+
+### API Endpoints
+
+#### Wishlist — `/api/v1/wishlist`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /wishlist | Customer JWT | 🔄 |
+| POST | /wishlist/products/:productId | Customer JWT | 🔄 |
+| DELETE | /wishlist/products/:productId | Customer JWT | 🔄 |
+
+#### Reviews (Customer) — `/api/v1/reviews`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| POST | /reviews | Customer JWT | 🔄 |
+| GET | /reviews/my | Customer JWT | 🔄 |
+| GET | /products/:productId/reviews | Public | 🔄 |
+| PATCH | /reviews/:id | Customer JWT | 🔄 |
+| DELETE | /reviews/:id | Customer JWT | 🔄 |
+
+#### Reviews (Admin) — `/api/v1/admin/reviews`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /admin/reviews | Admin JWT + review.view | 🔄 |
+| GET | /admin/reviews/:id | Admin JWT + review.view | 🔄 |
+| PATCH | /admin/reviews/:id/approve | Admin JWT + review.approve | 🔄 |
+| PATCH | /admin/reviews/:id/reject | Admin JWT + review.reject | 🔄 |
+| DELETE | /admin/reviews/:id | Admin JWT + review.delete | 🔄 |
+
+### Permissions Added
+
+| Permission | Slug |
+|------------|------|
+| View Wishlist | `wishlist.view` |
+| View Review | `review.view` |
+| Create Review | `review.create` |
+| Update Review | `review.update` |
+| Delete Review | `review.delete` |
+| Approve Review | `review.approve` |
+| Reject Review | `review.reject` |
+
+---
+
+## Layer 9 Out of Scope
 
 - Buy X Get Y cart adjustment logic (rule stored, checkout application pending)
 - Tiered/Multi-Tier Discounts

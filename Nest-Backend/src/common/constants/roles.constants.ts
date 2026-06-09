@@ -110,4 +110,13 @@ export enum DefaultPermissions {
   PROMOTION_VIEW = 'promotion.view',
   PROMOTION_UPDATE = 'promotion.update',
   PROMOTION_DELETE = 'promotion.delete',
+  // Wishlist
+  WISHLIST_VIEW = 'wishlist.view',
+  // Review
+  REVIEW_VIEW = 'review.view',
+  REVIEW_CREATE = 'review.create',
+  REVIEW_UPDATE = 'review.update',
+  REVIEW_DELETE = 'review.delete',
+  REVIEW_APPROVE = 'review.approve',
+  REVIEW_REJECT = 'review.reject',
 }

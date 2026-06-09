@@ -40,6 +40,10 @@ import { Coupon } from '../modules/promotions/entities/coupon.entity';
 import { Promotion } from '../modules/promotions/entities/promotion.entity';
 import { DiscountRule } from '../modules/promotions/entities/discount-rule.entity';
 import { CouponUsage } from '../modules/promotions/entities/coupon-usage.entity';
+import { Wishlist } from '../modules/wishlist/entities/wishlist.entity';
+import { WishlistItem } from '../modules/wishlist/entities/wishlist-item.entity';
+import { Review } from '../modules/reviews/entities/review.entity';
+import { ReviewImage } from '../modules/reviews/entities/review-image.entity';
 
 dotenv.config();
 
@@ -90,6 +94,10 @@ export const AppDataSource = new DataSource({
     Promotion,
     DiscountRule,
     CouponUsage,
+    Wishlist,
+    WishlistItem,
+    Review,
+    ReviewImage,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

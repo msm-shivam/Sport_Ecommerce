@@ -412,6 +412,43 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Delete Promotion',
     module: 'promotion',
   },
+  // Wishlist
+  {
+    slug: DefaultPermissions.WISHLIST_VIEW,
+    name: 'View Wishlist',
+    module: 'wishlist',
+  },
+  // Review
+  {
+    slug: DefaultPermissions.REVIEW_VIEW,
+    name: 'View Review',
+    module: 'review',
+  },
+  {
+    slug: DefaultPermissions.REVIEW_CREATE,
+    name: 'Create Review',
+    module: 'review',
+  },
+  {
+    slug: DefaultPermissions.REVIEW_UPDATE,
+    name: 'Update Review',
+    module: 'review',
+  },
+  {
+    slug: DefaultPermissions.REVIEW_DELETE,
+    name: 'Delete Review',
+    module: 'review',
+  },
+  {
+    slug: DefaultPermissions.REVIEW_APPROVE,
+    name: 'Approve Review',
+    module: 'review',
+  },
+  {
+    slug: DefaultPermissions.REVIEW_REJECT,
+    name: 'Reject Review',
+    module: 'review',
+  },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
@@ -455,6 +492,9 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.COUPON_UPDATE,
     DefaultPermissions.COUPON_DELETE,
     DefaultPermissions.PROMOTION_VIEW,
+    DefaultPermissions.REVIEW_VIEW,
+    DefaultPermissions.REVIEW_APPROVE,
+    DefaultPermissions.REVIEW_REJECT,
   ],
   [DefaultRoles.INVENTORY_MANAGER]: [
     DefaultPermissions.INVENTORY_CREATE,
@@ -492,6 +532,7 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.SUPPORT_UPDATE,
     DefaultPermissions.USER_VIEW,
     DefaultPermissions.ORDER_VIEW,
+    DefaultPermissions.REVIEW_VIEW,
   ],
 };
 

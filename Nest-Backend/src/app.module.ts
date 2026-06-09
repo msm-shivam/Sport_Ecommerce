@@ -24,6 +24,8 @@ import { WarehousesModule } from './modules/warehouses/warehouses.module';
 import { DeliverySettingsModule } from './modules/delivery-settings/delivery-settings.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -54,6 +56,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     DeliverySettingsModule,
     ShipmentsModule,
     PromotionsModule,
+    WishlistModule,
+    ReviewsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

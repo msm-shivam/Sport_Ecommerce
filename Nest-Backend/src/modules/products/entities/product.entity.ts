@@ -76,6 +76,18 @@ export class Product extends BaseEntity {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @Column({
+    name: 'average_rating',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    default: 0,
+  })
+  averageRating: number;
+
+  @Column({ name: 'review_count', type: 'int', default: 0 })
+  reviewCount: number;
+
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date | null;
 
