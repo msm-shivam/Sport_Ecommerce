@@ -64,6 +64,9 @@ export class Review extends BaseEntity {
   @Column({ name: 'is_verified_purchase', default: true })
   isVerifiedPurchase: boolean;
 
+  @Column({ name: 'helpful_count', type: 'int', default: 0 })
+  helpfulCount: number;
+
   @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedBy: string;
 

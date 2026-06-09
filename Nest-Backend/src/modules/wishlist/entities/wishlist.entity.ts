@@ -1,4 +1,4 @@
-import { Entity, Column, Index, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, Index, OneToMany, JoinColumn, ManyToOne, DeleteDateColumn } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 import { WishlistItem } from './wishlist-item.entity';
@@ -13,6 +13,12 @@ export class Wishlist extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToMany(() => WishlistItem, (item) => item.wishlist)
+  @Column({ name: 'total_items', type: 'int', default: 0 })
+  totalItems: number;
+
+  @OneToMany(() => WishlistItem, (item) => item.wishlist, { cascade: true })
   items: WishlistItem[];
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 }

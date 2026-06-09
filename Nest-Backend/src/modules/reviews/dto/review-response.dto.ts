@@ -53,6 +53,9 @@ export class ReviewResponseDto {
   isVerifiedPurchase: boolean;
 
   @ApiProperty()
+  helpfulCount: number;
+
+  @ApiProperty()
   user: ReviewUserDto;
 
   @ApiProperty()

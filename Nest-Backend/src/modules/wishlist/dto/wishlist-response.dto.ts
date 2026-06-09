@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 class WishlistProductDto {
   @ApiProperty()
@@ -11,6 +11,14 @@ class WishlistProductDto {
   slug: string;
 }
 
+class WishlistVariantDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  sku: string;
+}
+
 export class WishlistItemDto {
   @ApiProperty()
   id: string;
@@ -18,13 +26,19 @@ export class WishlistItemDto {
   @ApiProperty()
   product: WishlistProductDto;
 
+  @ApiPropertyOptional({ type: WishlistVariantDto })
+  variant?: WishlistVariantDto;
+
   @ApiProperty()
-  createdAt: Date;
+  addedAt: Date;
 }
 
 export class WishlistResponseDto {
   @ApiProperty()
   id: string;
+
+  @ApiProperty()
+  totalItems: number;
 
   @ApiProperty({ type: [WishlistItemDto] })
   items: WishlistItemDto[];

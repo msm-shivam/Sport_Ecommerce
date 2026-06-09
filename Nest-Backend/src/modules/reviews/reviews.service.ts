@@ -67,7 +67,9 @@ export class ReviewsService {
       status: ReviewStatus.PENDING,
       isVerifiedPurchase: true,
     });
-    return this.reviewRepository.save(review);
+    const saved = await this.reviewRepository.save(review);
+    await this.recalculateProductRating(dto.productId);
+    return saved;
   }
 
   async findByProduct(productId: string): Promise<Review[]> {
@@ -117,7 +119,9 @@ export class ReviewsService {
       throw new BadRequestException('Cannot edit an approved review');
     }
     Object.assign(review, dto);
-    return this.reviewRepository.save(review);
+    const saved = await this.reviewRepository.save(review);
+    await this.recalculateProductRating(review.productId);
+    return saved;
   }
 
   async remove(id: string, userId?: string): Promise<void> {
@@ -126,6 +130,7 @@ export class ReviewsService {
       throw new ForbiddenException('You can only delete your own reviews');
     }
     await this.reviewRepository.softDelete(id);
+    await this.recalculateProductRating(review.productId);
   }
 
   async approve(id: string, adminId: string): Promise<Review> {
@@ -146,6 +151,16 @@ export class ReviewsService {
     return saved;
   }
 
+  async hide(id: string, adminId: string): Promise<Review> {
+    const review = await this.findById(id);
+    review.status = ReviewStatus.HIDDEN;
+    review.approvedBy = adminId;
+    review.approvedAt = new Date();
+    const saved = await this.reviewRepository.save(review);
+    await this.recalculateProductRating(review.productId);
+    return saved;
+  }
+
   private async recalculateProductRating(productId: string): Promise<void> {
     const result = await this.reviewRepository
       .createQueryBuilder('review')
@@ -161,7 +176,8 @@ export class ReviewsService {
 
     await this.productRepository.update(productId, {
       averageRating: avg,
-      reviewCount: count,
+      totalRatings: count,
+      totalReviews: count,
     });
   }
 }

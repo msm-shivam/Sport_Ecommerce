@@ -1,12 +1,12 @@
-import { Entity, Column, Index, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import { Entity, Column, Index, ManyToOne, JoinColumn, CreateDateColumn, DeleteDateColumn } from 'typeorm';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 import { Wishlist } from './wishlist.entity';
 import { Product } from '../../products/entities/product.entity';
+import { ProductVariant } from '../../product-variants/entities/product-variant.entity';
 
 @Entity('wishlist_items')
 @Index(['wishlistId'])
 @Index(['productId'])
-@Unique(['wishlistId', 'productId'])
 export class WishlistItem extends BaseEntity {
   @Column({ name: 'wishlist_id', type: 'uuid' })
   wishlistId: string;
@@ -21,4 +21,17 @@ export class WishlistItem extends BaseEntity {
   @ManyToOne(() => Product, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id' })
   product: Product;
+
+  @Column({ name: 'variant_id', type: 'uuid', nullable: true })
+  variantId: string;
+
+  @ManyToOne(() => ProductVariant, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'variant_id' })
+  variant: ProductVariant;
+
+  @CreateDateColumn({ name: 'added_at', type: 'timestamptz' })
+  addedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 }

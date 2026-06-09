@@ -85,8 +85,11 @@ export class Product extends BaseEntity {
   })
   averageRating: number;
 
-  @Column({ name: 'review_count', type: 'int', default: 0 })
-  reviewCount: number;
+  @Column({ name: 'total_ratings', type: 'int', default: 0 })
+  totalRatings: number;
+
+  @Column({ name: 'total_reviews', type: 'int', default: 0 })
+  totalReviews: number;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date | null;

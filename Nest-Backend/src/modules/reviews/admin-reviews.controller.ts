@@ -52,6 +52,14 @@ export class AdminReviewsController {
     return this.reviewsService.reject(id, adminId);
   }
 
+  @Patch(':id/hide')
+  @Permissions(DefaultPermissions.REVIEW_APPROVE)
+  @ApiOperation({ summary: 'Hide a review' })
+  hide(@Param('id') id: string, @Req() req: Request) {
+    const adminId: string = (req.user as Record<string, unknown>).id as string;
+    return this.reviewsService.hide(id, adminId);
+  }
+
   @Delete(':id')
   @Permissions(DefaultPermissions.REVIEW_DELETE)
   @ApiOperation({ summary: 'Delete a review' })
