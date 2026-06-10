@@ -148,6 +148,49 @@ export class SearchAnalyticsService {
     await this.searchLogRepo.update(searchLogId, { convertedOrderId: orderId });
   }
 
+  async getAnalyticsSummary(period: '7d' | '30d' | '90d' = '30d') {
+    const since = this.getDateRange(period);
+
+    const totalSearches = await this.searchLogRepo.count({
+      where: { createdAt: MoreThan(since) },
+    });
+
+    const clickCount = await this.searchLogRepo.count({
+      where: { createdAt: MoreThan(since), clickedProductId: Not(IsNull()) },
+    });
+
+    const conversionCount = await this.searchLogRepo.count({
+      where: { createdAt: MoreThan(since), convertedOrderId: Not(IsNull()) },
+    });
+
+    const ctr = totalSearches > 0 ? Number(((clickCount / totalSearches) * 100).toFixed(2)) : 0;
+    const conversionRate = totalSearches > 0 ? Number(((conversionCount / totalSearches) * 100).toFixed(2)) : 0;
+
+    const avgPositionClicked = await this.searchLogRepo
+      .createQueryBuilder('log')
+      .select('AVG(log.results_count)', 'avgPosition')
+      .where('log.created_at > :since', { since })
+      .andWhere('log.clicked_product_id IS NOT NULL')
+      .getRawOne();
+
+    return {
+      totalSearches,
+      uniqueSearches: (await this.searchLogRepo
+        .createQueryBuilder('log')
+        .select('DISTINCT log.keyword')
+        .where('log.created_at > :since', { since })
+        .getRawMany()).length,
+      clickCount,
+      ctr,
+      conversionCount,
+      conversionRate,
+      avgPositionClicked: avgPositionClicked?.avgPosition
+        ? Number(parseFloat(avgPositionClicked.avgPosition).toFixed(2))
+        : 0,
+      period,
+    };
+  }
+
   async clearCache(): Promise<void> {
     // placeholder for cache clearing
   }

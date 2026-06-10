@@ -1422,10 +1422,11 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | Module | Status | Started | Completed |
 |--------|--------|---------|-----------|
 | Search Module (entities, DTOs, services, controllers, wiring) | ✅ Done | 2026-06-10 | 2026-06-10 |
-| Search Controller (search/suggestions/filter-options/recent/click) | ✅ Done | 2026-06-10 | 2026-06-10 |
-| Discovery Controller (related/also-viewed/frequently-bought/trending/new-arrivals/recently-viewed) | ✅ Done | 2026-06-10 | 2026-06-10 |
-| Admin Search Controller (analytics/top-keywords/trending/no-results/clear-cache) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Search Controller (search/suggestions/filter-options/recent/click/category/brand/collection) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Discovery Controller (related/also-viewed/frequently-bought/trending/new-arrivals/recently-viewed/recommended/similar/recent-trending/seasonal) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Admin Search Controller (analytics/summary/top-keywords/trending/no-results/clear-cache) | ✅ Done | 2026-06-10 | 2026-06-10 |
 | Migration Phase14SearchAndDiscovery (3 tables) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Migration Phase14SearchPerformanceIndexes (9 indexes) | ✅ Done | 2026-06-10 | 2026-06-10 |
 | Seed permissions (search_analytics.view + search_analytics.manage) | ✅ Done | 2026-06-10 | 2026-06-10 |
 
 ### New Entities (3 tables)
@@ -1448,6 +1449,20 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | GET | /search/filter-options | Public | ✅ |
 | GET | /search/recent | Customer JWT | ✅ |
 | POST | /search/click | Public | ✅ |
+| GET | /search/category/:slug | Public | ✅ |
+| GET | /search/brand/:slug | Public | ✅ |
+| GET | /search/collection/:slug | Public | ✅ |
+
+#### Search (Admin) — `/api/v1/admin/search`
+
+| Method | Path | Permission | Status |
+|--------|------|------------|--------|
+| GET | /admin/search/analytics | search_analytics.view | ✅ |
+| GET | /admin/search/summary | search_analytics.view | ✅ |
+| GET | /admin/search/top-keywords | search_analytics.view | ✅ |
+| GET | /admin/search/trending | search_analytics.view | ✅ |
+| GET | /admin/search/no-results | search_analytics.view | ✅ |
+| DELETE | /admin/search/cache | search_analytics.manage | ✅ |
 
 #### Discovery — `/api/v1/discovery`
 
@@ -1460,17 +1475,11 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | GET | /discovery/featured | Public | ✅ |
 | GET | /discovery/new-arrivals | Public | ✅ |
 | GET | /discovery/recently-viewed | Customer JWT | ✅ |
+| GET | /discovery/recommended | Customer JWT | ✅ |
+| GET | /discovery/similar/:productId | Public | ✅ |
+| GET | /discovery/recent-trending | Public | ✅ |
+| GET | /discovery/seasonal | Public | ✅ |
 | POST | /discovery/record-view | Public | ✅ |
-
-#### Search Analytics (Admin) — `/api/v1/admin/search`
-
-| Method | Path | Permission | Status |
-|--------|------|------------|--------|
-| GET | /admin/search/analytics | search_analytics.view | ✅ |
-| GET | /admin/search/top-keywords | search_analytics.view | ✅ |
-| GET | /admin/search/trending | search_analytics.view | ✅ |
-| GET | /admin/search/no-results | search_analytics.view | ✅ |
-| POST | /admin/search/clear-cache | search_analytics.manage | ✅ |
 
 ### New Permissions
 
@@ -1487,19 +1496,35 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | categoryIds | UUID[] | Filter by categories |
 | brandIds | UUID[] | Filter by brands |
 | collectionIds | UUID[] | Filter by collections |
+| attributeValueIds | UUID[] | Generic attribute value filtering (alternative to per-attribute params) |
 | sizes | string[] | Filter by variant size attributes |
 | colors | string[] | Filter by variant color attributes |
 | materials | string[] | Filter by variant material attributes |
 | genders | string[] | Filter by variant gender attributes |
 | sports | string[] | Filter by variant sport attributes |
+| priceBuckets | string[] | Faceted price ranges (e.g. 0-500,500-1000,1000-2000,2000+) |
+| availability | enum | IN_STOCK, OUT_OF_STOCK, PREORDER |
+| tags | string[] | Filter by product tag slugs |
 | minPrice | number | Minimum price filter |
 | maxPrice | number | Maximum price filter |
-| rating | number | Minimum average rating filter |
-| discount | number | Minimum discount percentage filter |
+| minRating | number | Minimum average rating (0-5) |
+| maxRating | number | Maximum average rating (0-5) |
+| minDiscount | number | Minimum discount percentage (0-100) |
+| maxDiscount | number | Maximum discount percentage (0-100) |
 | inStock | boolean | Only show in-stock products |
+| hasReview | boolean | Only products with at least one review |
+| isFeatured | boolean | Only featured products |
+| isNewArrival | boolean | Products created within last 30 days |
+| isBestSeller | boolean | Products with 10+ reviews |
+| onSale | boolean | Products with any variant on sale (compare_at_price > price) |
+| createdAfter | ISO date | Products created after date |
+| createdBefore | ISO date | Products created before date |
+| sellerIds | UUID[] | Future marketplace support |
+| warehouseIds | UUID[] | Future inventory-aware search |
+| countryOfOrigin | string[] | Product origin country filter |
 | sort | enum | relevance (default), newest, price_asc, price_desc, highest_rated, name_asc, name_desc, discount_desc |
 | page | number | Page number (default: 1) |
-| limit | number | Items per page (default: 20) |
+| limit | number | Items per page (default: 100 max) |
 
 ### Business Rules Implemented
 
@@ -1519,6 +1544,26 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 | Recent Searches Capped | Max 20 per user, deletes oldest when limit exceeded |
 | Click Tracking | POST /search/click logs which search result was clicked |
 | Filter Options | Returns distinct available brands, categories, collections, price range, sizes/colors/materials from active products |
+| minRating / maxRating | Replaces old single `rating` param — supports range filtering |
+| minDiscount / maxDiscount | Replaces old single `discount` param — supports range filtering |
+| hasReview | Filters to products with `total_reviews > 0` |
+| isFeatured | Filters to `is_featured = true` |
+| isNewArrival | Filters to products created within last 30 days |
+| isBestSeller | Filters to products with 10+ reviews (high purchase count proxy) |
+| onSale | Filters to products where any variant has `compare_at_price > price` |
+| Category/Brand/Collection Slug Routes | Resolves slug to ID, then delegates to search with the ID filter set |
+| Generic attributeValueIds | Filters by any attribute value ID (not just size/color/material/gender/sport) |
+| Price Buckets | Pre-defined price ranges for faceted search (e.g. 0-500, 500-1000) |
+| Availability | IN_STOCK/OUT_OF_STOCK/PREORDER filter via inventory + variant status |
+| Tags | Filter by product tag slugs via product_tag_mappings |
+| Created Date Range | createdAfter/createdBefore for archival or new-arrival date ranges |
+| Seller/Warehouse/Country | Future-ready filter params accepted but no-op until those features exist |
+| Recommended | Personalized recommendations based on user's viewed categories |
+| Similar Products | Products in same category + brand, ordered by rating |
+| Recent Trending | Trending products within 7 days (faster window than 30d) |
+| Seasonal | Products matching season keywords based on current month |
+| Analytics Summary | searchCount, clickCount, CTR, conversionRate, avgPositionClicked |
+| Search Performance Indexes | 9 new indexes (status, brand, category, rating, price, stock, product_collections) |
 
 ### Deliverables
 
@@ -1538,6 +1583,20 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 - [x] Seed permissions (search_analytics.view + search_analytics.manage)
 - [x] Role mappings (ADMIN gets both permissions)
 - [x] Zero TypeScript build errors
+- [x] Enhanced filter fields (minRating/maxRating/minDiscount/maxDiscount/hasReview/isFeatured/isNewArrival/isBestSeller/onSale)
+- [x] Category/brand/collection slug routes (/search/category/:slug, /search/brand/:slug, /search/collection/:slug)
+- [x] attributeValueIds generic filter
+- [x] priceBuckets faceted search
+- [x] availability filter (IN_STOCK/OUT_OF_STOCK/PREORDER)
+- [x] tags[] filter
+- [x] createdAfter/createdBefore date range filter
+- [x] sellerIds/warehouseIds/countryOfOrigin future-ready params
+- [x] Discovery: GET /discovery/recommended (JWT)
+- [x] Discovery: GET /discovery/similar/:productId
+- [x] Discovery: GET /discovery/recent-trending
+- [x] Discovery: GET /discovery/seasonal
+- [x] Analytics: GET /admin/search/summary (searchCount, clickCount, CTR, conversionRate, avgPositionClicked)
+- [x] Migration Phase14SearchPerformanceIndexes (9 indexes)
 
 ---
 

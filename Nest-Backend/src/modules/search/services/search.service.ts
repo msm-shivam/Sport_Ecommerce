@@ -12,7 +12,7 @@ import { Collection } from '../../collections/entities/collection.entity';
 import { SubCategory } from '../../sub-categories/entities/sub-category.entity';
 import { Attribute } from '../../attributes/entities/attribute.entity';
 import { AttributeValue } from '../../attribute-values/entities/attribute-value.entity';
-import { SearchQueryDto, SortOption } from '../dto/search-query.dto';
+import { SearchQueryDto, SortOption, AvailabilityOption } from '../dto/search-query.dto';
 import { SearchLog } from '../entities/search-log.entity';
 import { SearchAnalyticsService } from './search-analytics.service';
 import { paginate } from '../../../common/utils/pagination.util';
@@ -107,22 +107,58 @@ export class SearchService {
       }
     }
 
-    // Rating filter
-    if (query.rating) {
-      qb.andWhere('p.average_rating >= :rating', { rating: query.rating });
+    // Rating filter (min/max)
+    if (query.minRating !== undefined) {
+      qb.andWhere('p.average_rating >= :minRating', { minRating: query.minRating });
+    }
+    if (query.maxRating !== undefined) {
+      qb.andWhere('p.average_rating <= :maxRating', { maxRating: query.maxRating });
     }
 
-    // Discount filter (compareAtPrice > price)
-    if (query.discount) {
+    // Discount filter (min/max)
+    if (query.minDiscount !== undefined) {
       qb.andWhere(
-        'v.compare_at_price IS NOT NULL AND ((v.compare_at_price - v.price) / v.compare_at_price * 100) >= :discount',
-        { discount: query.discount },
+        'v.compare_at_price IS NOT NULL AND ((v.compare_at_price - v.price) / v.compare_at_price * 100) >= :minDiscount',
+        { minDiscount: query.minDiscount },
+      );
+    }
+    if (query.maxDiscount !== undefined) {
+      qb.andWhere(
+        'v.compare_at_price IS NOT NULL AND ((v.compare_at_price - v.price) / v.compare_at_price * 100) <= :maxDiscount',
+        { maxDiscount: query.maxDiscount },
       );
     }
 
     // In stock filter
     if (query.inStock === true) {
       qb.andWhere('inv.available_quantity > 0');
+    }
+
+    // Has review filter
+    if (query.hasReview === true) {
+      qb.andWhere('p.total_reviews > 0');
+    }
+
+    // Featured filter
+    if (query.isFeatured === true) {
+      qb.andWhere('p.is_featured = true');
+    }
+
+    // New arrival filter (created within last 30 days)
+    if (query.isNewArrival === true) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      qb.andWhere('p.created_at >= :newArrivalDate', { newArrivalDate: thirtyDaysAgo });
+    }
+
+    // Best seller filter (total_reviews > 0 ordered by total_reviews — filter out low performers)
+    if (query.isBestSeller === true) {
+      qb.andWhere('p.total_reviews >= 10');
+    }
+
+    // On sale filter (any variant has compare_at_price > price)
+    if (query.onSale === true) {
+      qb.andWhere('v.compare_at_price IS NOT NULL AND v.compare_at_price > v.price');
     }
 
     // Dynamic attribute filters
@@ -161,6 +197,76 @@ export class SearchService {
         `p.id IN (SELECT v6.product_id FROM product_variants v6 JOIN product_variant_attributes pva6 ON pva6.variant_id = v6.id JOIN attribute_values av6 ON av6.id = pva6.attribute_value_id WHERE av6.value IN (:...sports) AND v6.deleted_at IS NULL)`,
         { sports: query.sports },
       );
+    }
+
+    // Generic attribute value IDs filter
+    if (query.attributeValueIds?.length) {
+      qb.andWhere(
+        `p.id IN (SELECT v7.product_id FROM product_variants v7 JOIN product_variant_attributes pva7 ON pva7.variant_id = v7.id WHERE pva7.attribute_value_id IN (:...attributeValueIds) AND v7.deleted_at IS NULL)`,
+        { attributeValueIds: query.attributeValueIds },
+      );
+    }
+
+    // Price buckets (facets: 0-500, 500-1000, 1000-2000, 2000+)
+    if (query.priceBuckets?.length) {
+      const bucketConditions = query.priceBuckets.map((bucket) => {
+        const match = bucket.match(/^(\d+)-(\d+)\+?$/);
+        if (match) {
+          return { min: parseFloat(match[1]), max: parseFloat(match[2]) };
+        }
+        const matchOpen = bucket.match(/^(\d+)\+$/);
+        if (matchOpen) {
+          return { min: parseFloat(matchOpen[1]), max: Infinity };
+        }
+        const matchRange = bucket.match(/^(\d+)-(\d+)$/);
+        if (matchRange) {
+          return { min: parseFloat(matchRange[1]), max: parseFloat(matchRange[2]) };
+        }
+        return null;
+      }).filter(Boolean) as { min: number; max: number }[];
+
+      if (bucketConditions.length > 0) {
+        const bucketSql = bucketConditions.map((_, i) =>
+          `(v.price >= :bucketMin${i} AND v.price <= :bucketMax${i})`,
+        ).join(' OR ');
+        const bucketParams = bucketConditions.reduce((acc, b, i) => {
+          acc[`bucketMin${i}`] = b.min;
+          acc[`bucketMax${i}`] = b.max;
+          return acc;
+        }, {} as Record<string, number>);
+        qb.andWhere(`(${bucketSql})`, bucketParams);
+      }
+    }
+
+    // Availability filter
+    if (query.availability) {
+      switch (query.availability) {
+        case AvailabilityOption.IN_STOCK:
+          qb.andWhere('inv.available_quantity > 0');
+          break;
+        case AvailabilityOption.OUT_OF_STOCK:
+          qb.andWhere('(inv.available_quantity IS NULL OR inv.available_quantity <= 0)');
+          break;
+        case AvailabilityOption.PREORDER:
+          qb.andWhere('v.status = :preorderStatus', { preorderStatus: 'PREORDER' });
+          break;
+      }
+    }
+
+    // Tags filter (product_tags slug)
+    if (query.tags?.length) {
+      qb.andWhere(
+        `p.id IN (SELECT ptm.product_id FROM product_tag_mappings ptm JOIN product_tags pt ON pt.id = ptm.tag_id WHERE pt.slug IN (:...tags))`,
+        { tags: query.tags },
+      );
+    }
+
+    // Created date range filter
+    if (query.createdAfter) {
+      qb.andWhere('p.created_at >= :createdAfter', { createdAfter: new Date(query.createdAfter) });
+    }
+    if (query.createdBefore) {
+      qb.andWhere('p.created_at <= :createdBefore', { createdBefore: new Date(query.createdBefore) });
     }
 
     // Sorting

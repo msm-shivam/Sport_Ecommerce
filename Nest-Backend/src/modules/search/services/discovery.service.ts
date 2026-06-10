@@ -182,6 +182,129 @@ export class DiscoveryService {
     return this.findProducts(productIds);
   }
 
+  async getRecommended(userId: string, limit = 20): Promise<Product[]> {
+    const views = await this.productViewRepo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
+    const viewedProductIds = [...new Set(views.map((v) => v.productId))];
+
+    if (viewedProductIds.length > 0) {
+      const categories = await this.productRepo
+        .createQueryBuilder('p')
+        .select('p.category_id')
+        .where('p.id IN (:...ids)', { ids: viewedProductIds })
+        .groupBy('p.category_id')
+        .orderBy('COUNT(*)', 'DESC')
+        .getRawMany();
+      const topCategoryIds = categories.map((c: any) => c.p_category_id).filter(Boolean);
+      if (topCategoryIds.length > 0) {
+        return this.productRepo
+          .createQueryBuilder('p')
+          .leftJoinAndSelect('p.brand', 'brand')
+          .leftJoinAndSelect('p.category', 'category')
+          .leftJoinAndSelect('p.images', 'images')
+          .where('p.deleted_at IS NULL')
+          .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
+          .andWhere('p.is_active = :isActive', { isActive: true })
+          .andWhere('p.id NOT IN (:...excludeIds)', { excludeIds: viewedProductIds })
+          .andWhere('p.category_id IN (:...catIds)', { catIds: topCategoryIds })
+          .orderBy('p.average_rating', 'DESC')
+          .take(limit)
+          .getMany();
+      }
+    }
+
+    return this.getTrendingProducts(limit);
+  }
+
+  async getSimilar(productId: string, limit = 12): Promise<Product[]> {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+    if (!product) return [];
+
+    return this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.brand', 'brand')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.images', 'images')
+      .where('p.id != :productId', { productId })
+      .andWhere('p.deleted_at IS NULL')
+      .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('p.is_active = :isActive', { isActive: true })
+      .andWhere('p.category_id = :catId', { catId: product.categoryId })
+      .andWhere('p.brand_id = :brandId', { brandId: product.brandId })
+      .orderBy('p.average_rating', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  async getRecentTrending(limit = 20): Promise<Product[]> {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const products = await this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.brand', 'brand')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.images', 'images')
+      .leftJoin('product_views', 'pv', 'pv.product_id = p.id AND pv.created_at > :since')
+      .leftJoin('order_items', 'oi', 'oi.product_id = p.id AND oi.created_at > :since2')
+      .where('p.deleted_at IS NULL')
+      .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('p.is_active = :isActive', { isActive: true })
+      .andWhere('pv.created_at > :since', { since: sevenDaysAgo })
+      .andWhere('oi.created_at > :since2', { since2: sevenDaysAgo })
+      .groupBy('p.id')
+      .addGroupBy('brand.id')
+      .addGroupBy('category.id')
+      .addSelect('COUNT(DISTINCT pv.id) + COUNT(DISTINCT oi.id)', 'trending_score')
+      .orderBy('"trending_score"', 'DESC')
+      .take(limit)
+      .getMany();
+
+    return products;
+  }
+
+  async getSeasonal(limit = 20): Promise<Product[]> {
+    const now = new Date();
+    const month = now.getMonth();
+    let seasonKeywords: string[];
+    if (month >= 2 && month <= 4) {
+      seasonKeywords = ['spring', 'summer'];
+    } else if (month >= 5 && month <= 7) {
+      seasonKeywords = ['summer', 'beach', 'outdoor'];
+    } else if (month >= 8 && month <= 10) {
+      seasonKeywords = ['fall', 'autumn', 'winter'];
+    } else {
+      seasonKeywords = ['winter', 'snow', 'indoor'];
+    }
+
+    const conditions = seasonKeywords.map((_, i) =>
+      `(LOWER(p.name) LIKE :kw${i} OR LOWER(p.description) LIKE :kw${i} OR LOWER(p.short_description) LIKE :kw${i} OR LOWER(p.meta_keywords) LIKE :kw${i})`,
+    ).join(' OR ');
+
+    const params = seasonKeywords.reduce((acc, kw, i) => {
+      acc[`kw${i}`] = `%${kw}%`;
+      return acc;
+    }, {} as Record<string, string>);
+
+    return this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.brand', 'brand')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.images', 'images')
+      .where('p.deleted_at IS NULL')
+      .andWhere('p.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('p.is_active = :isActive', { isActive: true })
+      .andWhere(`(${conditions})`, params)
+      .orderBy('p.average_rating', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
   async recordView(userId: string | undefined, productId: string): Promise<void> {
     if (!userId) return;
     const existing = await this.productViewRepo.findOne({

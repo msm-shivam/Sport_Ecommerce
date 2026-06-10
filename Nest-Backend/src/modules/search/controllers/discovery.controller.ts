@@ -66,6 +66,38 @@ export class DiscoveryController {
     return this.discoveryService.getRecentlyViewed(req.user.id, limit);
   }
 
+  @Get('recommended')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get personalized product recommendations' })
+  async recommended(
+    @Req() req: any,
+    @Query('limit') limit?: number,
+  ) {
+    return this.discoveryService.getRecommended(req.user.id, limit);
+  }
+
+  @Get('similar/:productId')
+  @ApiOperation({ summary: 'Get similar products (same category + brand)' })
+  async similar(
+    @Param('productId') productId: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.discoveryService.getSimilar(productId, limit);
+  }
+
+  @Get('recent-trending')
+  @ApiOperation({ summary: 'Get recently trending products (7 days)' })
+  async recentTrending(@Query('limit') limit?: number) {
+    return this.discoveryService.getRecentTrending(limit);
+  }
+
+  @Get('seasonal')
+  @ApiOperation({ summary: 'Get seasonal product recommendations' })
+  async seasonal(@Query('limit') limit?: number) {
+    return this.discoveryService.getSeasonal(limit);
+  }
+
   @Get('record-view/:productId')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

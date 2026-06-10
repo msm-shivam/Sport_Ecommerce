@@ -23,6 +23,13 @@ export class AdminSearchController {
     return this.searchAnalyticsService.getAnalytics(query.period || '30d');
   }
 
+  @Get('summary')
+  @Permissions(DefaultPermissions.SEARCH_ANALYTICS_VIEW)
+  @ApiOperation({ summary: 'Get analytics summary (searchCount, CTR, conversionRate, avgPosition)' })
+  async summary(@Query() query: SearchAnalyticsQueryDto) {
+    return this.searchAnalyticsService.getAnalyticsSummary(query.period || '30d');
+  }
+
   @Get('top-keywords')
   @Permissions(DefaultPermissions.SEARCH_ANALYTICS_VIEW)
   @ApiOperation({ summary: 'Get top search keywords' })
