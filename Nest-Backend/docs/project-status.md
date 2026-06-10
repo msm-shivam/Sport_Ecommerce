@@ -27,6 +27,7 @@
 | app.module.ts (full wiring) | ✅ Done | 2026-06-06 | 2026-06-06 |
 | TypeScript Build (zero errors) | ✅ Done | 2026-06-06 | 2026-06-06 |
 | Postman Collection | ✅ Done | 2026-06-06 | 2026-06-06 |
+| Search & Discovery Module (search/analytics/discovery) | ✅ Done | 2026-06-10 | 2026-06-10 |
 
 ---
 
@@ -1412,19 +1413,133 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 
 ---
 
-## Layer 9 Out of Scope
+## Layer 14 — Advanced Product Search, Filtering, Discovery & Catalog Intelligence
 
-- Buy X Get Y cart adjustment logic (rule stored, checkout application pending)
-- Tiered/Multi-Tier Discounts
-- Bulk Coupon Generation
-- Cart-Level Promotion Auto-Application
-- Customer-Facing Promotion List
-- Abandoned Cart Recovery Coupons
-- Referral Discounts
-- Loyalty Points System
-- Gift Card / Store Credit
-- BOGO (Buy One Get One) auto-apply
-- Time-limited flash sale countdown
+### Status: ✅ Complete
+
+### Module Build Log
+
+| Module | Status | Started | Completed |
+|--------|--------|---------|-----------|
+| Search Module (entities, DTOs, services, controllers, wiring) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Search Controller (search/suggestions/filter-options/recent/click) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Discovery Controller (related/also-viewed/frequently-bought/trending/new-arrivals/recently-viewed) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Admin Search Controller (analytics/top-keywords/trending/no-results/clear-cache) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Migration Phase14SearchAndDiscovery (3 tables) | ✅ Done | 2026-06-10 | 2026-06-10 |
+| Seed permissions (search_analytics.view + search_analytics.manage) | ✅ Done | 2026-06-10 | 2026-06-10 |
+
+### New Entities (3 tables)
+
+| Entity | Table | Key Fields |
+|--------|-------|------------|
+| SearchLog | search_logs | userId (nullable), keyword, resultsCount, clickedProductId (nullable), convertedOrderId (nullable), ipAddress (nullable) |
+| RecentSearch | recent_searches | userId + keyword (unique composite), timestamps |
+| ProductView | product_views | userId (nullable), productId, viewedAt |
+
+### API Endpoints
+
+#### Search (Customer) — `/api/v1/search`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /search | Public | ✅ |
+| GET | /search/suggestions | Public | ✅ |
+| GET | /search/trending | Public | ✅ |
+| GET | /search/filter-options | Public | ✅ |
+| GET | /search/recent | Customer JWT | ✅ |
+| POST | /search/click | Public | ✅ |
+
+#### Discovery — `/api/v1/discovery`
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | /discovery/related/:productId | Public | ✅ |
+| GET | /discovery/also-viewed/:productId | Public | ✅ |
+| GET | /discovery/frequently-bought/:productId | Public | ✅ |
+| GET | /discovery/trending | Public | ✅ |
+| GET | /discovery/featured | Public | ✅ |
+| GET | /discovery/new-arrivals | Public | ✅ |
+| GET | /discovery/recently-viewed | Customer JWT | ✅ |
+| POST | /discovery/record-view | Public | ✅ |
+
+#### Search Analytics (Admin) — `/api/v1/admin/search`
+
+| Method | Path | Permission | Status |
+|--------|------|------------|--------|
+| GET | /admin/search/analytics | search_analytics.view | ✅ |
+| GET | /admin/search/top-keywords | search_analytics.view | ✅ |
+| GET | /admin/search/trending | search_analytics.view | ✅ |
+| GET | /admin/search/no-results | search_analytics.view | ✅ |
+| POST | /admin/search/clear-cache | search_analytics.manage | ✅ |
+
+### New Permissions
+
+| Permission | Slug | Assigned To |
+|------------|------|-------------|
+| View Search Analytics | `search_analytics.view` | SUPER_ADMIN, ADMIN |
+| Manage Search Analytics | `search_analytics.manage` | SUPER_ADMIN, ADMIN |
+
+### Search Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| q | string | Keyword full-text search (ILIKE on name, description) |
+| categoryIds | UUID[] | Filter by categories |
+| brandIds | UUID[] | Filter by brands |
+| collectionIds | UUID[] | Filter by collections |
+| sizes | string[] | Filter by variant size attributes |
+| colors | string[] | Filter by variant color attributes |
+| materials | string[] | Filter by variant material attributes |
+| genders | string[] | Filter by variant gender attributes |
+| sports | string[] | Filter by variant sport attributes |
+| minPrice | number | Minimum price filter |
+| maxPrice | number | Maximum price filter |
+| rating | number | Minimum average rating filter |
+| discount | number | Minimum discount percentage filter |
+| inStock | boolean | Only show in-stock products |
+| sort | enum | relevance (default), newest, price_asc, price_desc, highest_rated, name_asc, name_desc, discount_desc |
+| page | number | Page number (default: 1) |
+| limit | number | Items per page (default: 20) |
+
+### Business Rules Implemented
+
+| Rule | Description |
+|------|-------------|
+| Only Active Products | Search results exclude DRAFT, INACTIVE, ARCHIVED |
+| ILIKE Full-Text Search | Case-insensitive pattern match on product name + description |
+| Dynamic Attribute Filters | Sizes/colors/materials/genders/sports filter via subqueries through product_variants → product_variant_attributes → attribute_values |
+| Price Range Filter | Products with at least one variant price in range |
+| Rating Filter | Products with average_rating >= threshold |
+| Discount Filter | Products with at least one variant having compare_at_price > price and discount ≥ threshold |
+| In-Stock Filter | Products with at least one variant having available_quantity > 0 |
+| Search Suggestions | Products (by rating) → Brands → Categories → Collections → Popular Searches |
+| Trending Products (30d) | COUNT(DISTINCT) aggregation from product_views + order_items + wishlist_items |
+| Trending Keywords (7d vs 30d) | Growth rate calculation: ((current - previous) / previous) × 100 |
+| Dedup Product Views | Skips recording if same user+product viewed within 30 minutes |
+| Recent Searches Capped | Max 20 per user, deletes oldest when limit exceeded |
+| Click Tracking | POST /search/click logs which search result was clicked |
+| Filter Options | Returns distinct available brands, categories, collections, price range, sizes/colors/materials from active products |
+
+### Deliverables
+
+- [x] SearchLog entity + migration
+- [x] RecentSearch entity + migration
+- [x] ProductView entity + migration
+- [x] SearchQueryDto with all filters + sort + pagination
+- [x] SearchService (ILIKE + joins + attribute subqueries + pagination)
+- [x] SearchSuggestionsService (products/brands/categories/collections/popular searches)
+- [x] SearchAnalyticsService (logSearch, logClick, logConversion, top keywords, trending, no-results)
+- [x] DiscoveryService (related, also-viewed, frequently-bought, trending, featured, new-arrivals, recently-viewed)
+- [x] SearchController (6 endpoints)
+- [x] DiscoveryController (8 endpoints)
+- [x] AdminSearchController (5 endpoints)
+- [x] SearchModule (TypeOrm imports + providers + exports)
+- [x] Migration Phase14SearchAndDiscovery (3 tables with indexes + FKs)
+- [x] Seed permissions (search_analytics.view + search_analytics.manage)
+- [x] Role mappings (ADMIN gets both permissions)
+- [x] Zero TypeScript build errors
+
+---
 
 
 

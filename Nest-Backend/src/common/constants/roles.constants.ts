@@ -124,6 +124,9 @@ export enum DefaultPermissions {
   QUESTION_VIEW = 'question.view',
   QUESTION_ANSWER = 'question.answer',
   QUESTION_DELETE = 'question.delete',
+  // Search
+  SEARCH_ANALYTICS_VIEW = 'search_analytics.view',
+  SEARCH_ANALYTICS_MANAGE = 'search_analytics.manage',
   // Notifications
   NOTIFICATION_VIEW = 'notification.view',
   NOTIFICATION_MANAGE = 'notification.manage',

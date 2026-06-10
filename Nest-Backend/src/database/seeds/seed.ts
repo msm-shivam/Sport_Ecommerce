@@ -501,6 +501,17 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Delete Email Templates',
     module: 'email_template',
   },
+  // Search
+  {
+    slug: DefaultPermissions.SEARCH_ANALYTICS_VIEW,
+    name: 'View Search Analytics',
+    module: 'search',
+  },
+  {
+    slug: DefaultPermissions.SEARCH_ANALYTICS_MANAGE,
+    name: 'Manage Search Analytics',
+    module: 'search',
+  },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
@@ -555,6 +566,8 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
         DefaultPermissions.EMAIL_TEMPLATE_CREATE,
         DefaultPermissions.EMAIL_TEMPLATE_UPDATE,
         DefaultPermissions.EMAIL_TEMPLATE_DELETE,
+        DefaultPermissions.SEARCH_ANALYTICS_VIEW,
+        DefaultPermissions.SEARCH_ANALYTICS_MANAGE,
       ],
   [DefaultRoles.INVENTORY_MANAGER]: [
     DefaultPermissions.INVENTORY_CREATE,
