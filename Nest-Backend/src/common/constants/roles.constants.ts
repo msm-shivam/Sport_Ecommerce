@@ -171,4 +171,7 @@ export enum DefaultPermissions {
   RETURN_REJECT = 'return.reject',
   RETURN_RECEIVE = 'return.receive',
   RETURN_REFUND = 'return.refund',
+  // Reports & Dashboards
+  REPORTS_VIEW = 'reports.view',
+  DASHBOARD_VIEW = 'dashboard.view',
 }

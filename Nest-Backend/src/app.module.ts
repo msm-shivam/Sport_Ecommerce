@@ -34,6 +34,7 @@ import { ReturnsModule } from './modules/returns/returns.module';
 import { SupportModule } from './modules/support/support.module';
 import { EmailNotificationsModule } from './modules/email-notifications/email-notifications.module';
 import { FinanceAccountingModule } from './modules/finance-accounting/finance-accounting.module';
+import { ReportsBusinessIntelligenceModule } from './modules/reports-bi/reports-bi.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -74,6 +75,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     SupportModule,
     EmailNotificationsModule,
     FinanceAccountingModule,
+    ReportsBusinessIntelligenceModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

@@ -663,6 +663,17 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Refund Returns',
     module: 'return',
   },
+  // Reports & Dashboards
+  {
+    slug: DefaultPermissions.REPORTS_VIEW,
+    name: 'View Reports',
+    module: 'reports',
+  },
+  {
+    slug: DefaultPermissions.DASHBOARD_VIEW,
+    name: 'View Dashboards',
+    module: 'dashboard',
+  },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
@@ -741,6 +752,8 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.INVENTORY_ANALYTICS_VIEW,
     DefaultPermissions.PRODUCT_VIEW,
     DefaultPermissions.VARIANT_VIEW,
+    DefaultPermissions.REPORTS_VIEW,
+    DefaultPermissions.DASHBOARD_VIEW,
   ],
   [DefaultRoles.ORDER_MANAGER]: [
     DefaultPermissions.ORDER_VIEW,
@@ -779,6 +792,8 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.REFUND_UPDATE,
     DefaultPermissions.RETURN_VIEW,
     DefaultPermissions.RETURN_REFUND,
+    DefaultPermissions.REPORTS_VIEW,
+    DefaultPermissions.DASHBOARD_VIEW,
   ],
   [DefaultRoles.SUPPORT_MANAGER]: [
     DefaultPermissions.SUPPORT_VIEW,
@@ -798,6 +813,8 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
         DefaultPermissions.EMAIL_TEMPLATE_UPDATE,
         DefaultPermissions.EMAIL_TEMPLATE_DELETE,
         DefaultPermissions.RETURN_VIEW,
+        DefaultPermissions.REPORTS_VIEW,
+        DefaultPermissions.DASHBOARD_VIEW,
       ],
   [DefaultRoles.MARKETING_MANAGER]: [
     DefaultPermissions.NOTIFICATION_VIEW,
@@ -822,6 +839,7 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.PRODUCT_VIEW,
     DefaultPermissions.REVIEW_VIEW,
     DefaultPermissions.USER_VIEW,
+    DefaultPermissions.DASHBOARD_VIEW,
   ],
   [DefaultRoles.WAREHOUSE_MANAGER]: [
     DefaultPermissions.INVENTORY_VIEW,

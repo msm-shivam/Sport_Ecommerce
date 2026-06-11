@@ -1,0 +1,7 @@
+export enum DashboardType {
+  MAIN = 'MAIN',
+  FINANCE = 'FINANCE',
+  INVENTORY = 'INVENTORY',
+  SUPPORT = 'SUPPORT',
+  MARKETING = 'MARKETING',
+}

@@ -83,6 +83,9 @@ import { Settlement } from '../modules/finance-accounting/entities/settlement.en
 import { TaxRecord } from '../modules/finance-accounting/entities/tax-record.entity';
 import { ExpenseRecord } from '../modules/finance-accounting/entities/expense-record.entity';
 import { FinancialAudit } from '../modules/finance-accounting/entities/financial-audit.entity';
+import { DashboardSnapshot } from '../modules/reports-bi/entities/dashboard-snapshot.entity';
+import { ReportExecutionLog } from '../modules/reports-bi/entities/report-execution-log.entity';
+import { SavedReport } from '../modules/reports-bi/entities/saved-report.entity';
 
 dotenv.config();
 
@@ -176,6 +179,9 @@ export const AppDataSource = new DataSource({
     TaxRecord,
     ExpenseRecord,
     FinancialAudit,
+    DashboardSnapshot,
+    ReportExecutionLog,
+    SavedReport,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
