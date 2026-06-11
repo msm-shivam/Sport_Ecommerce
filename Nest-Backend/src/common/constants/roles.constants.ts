@@ -174,4 +174,9 @@ export enum DefaultPermissions {
   // Reports & Dashboards
   REPORTS_VIEW = 'reports.view',
   DASHBOARD_VIEW = 'dashboard.view',
+  // Audit, Security & Compliance
+  AUDIT_VIEW = 'audit.view',
+  SECURITY_VIEW = 'security.view',
+  SECURITY_MANAGE = 'security.manage',
+  PRIVACY_MANAGE = 'privacy.manage',
 }

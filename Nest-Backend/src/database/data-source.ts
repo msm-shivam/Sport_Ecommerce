@@ -86,6 +86,12 @@ import { FinancialAudit } from '../modules/finance-accounting/entities/financial
 import { DashboardSnapshot } from '../modules/reports-bi/entities/dashboard-snapshot.entity';
 import { ReportExecutionLog } from '../modules/reports-bi/entities/report-execution-log.entity';
 import { SavedReport } from '../modules/reports-bi/entities/saved-report.entity';
+import { AuditLog } from '../modules/security-compliance/entities/audit-log.entity';
+import { LoginActivity } from '../modules/security-compliance/entities/login-activity.entity';
+import { SecuritySession } from '../modules/security-compliance/entities/security-session.entity';
+import { SecurityEvent } from '../modules/security-compliance/entities/security-event.entity';
+import { PrivacyRequest } from '../modules/security-compliance/entities/privacy-request.entity';
+import { ConsentRecord } from '../modules/security-compliance/entities/consent-record.entity';
 
 dotenv.config();
 
@@ -182,6 +188,12 @@ export const AppDataSource = new DataSource({
     DashboardSnapshot,
     ReportExecutionLog,
     SavedReport,
+    AuditLog,
+    LoginActivity,
+    SecuritySession,
+    SecurityEvent,
+    PrivacyRequest,
+    ConsentRecord,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

@@ -674,6 +674,27 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'View Dashboards',
     module: 'dashboard',
   },
+  // Audit, Security & Compliance
+  {
+    slug: DefaultPermissions.AUDIT_VIEW,
+    name: 'View Audit Logs',
+    module: 'audit',
+  },
+  {
+    slug: DefaultPermissions.SECURITY_VIEW,
+    name: 'View Security',
+    module: 'security',
+  },
+  {
+    slug: DefaultPermissions.SECURITY_MANAGE,
+    name: 'Manage Security',
+    module: 'security',
+  },
+  {
+    slug: DefaultPermissions.PRIVACY_MANAGE,
+    name: 'Manage Privacy Requests',
+    module: 'privacy',
+  },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
