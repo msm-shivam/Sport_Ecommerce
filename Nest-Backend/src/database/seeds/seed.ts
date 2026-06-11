@@ -695,6 +695,27 @@ const PERMISSIONS: PermissionDef[] = [
     name: 'Manage Privacy Requests',
     module: 'privacy',
   },
+  // Settings & CMS
+  {
+    slug: DefaultPermissions.SETTINGS_VIEW,
+    name: 'View Settings',
+    module: 'settings',
+  },
+  {
+    slug: DefaultPermissions.SETTINGS_MANAGE,
+    name: 'Manage Settings',
+    module: 'settings',
+  },
+  {
+    slug: DefaultPermissions.CMS_VIEW,
+    name: 'View CMS',
+    module: 'cms',
+  },
+  {
+    slug: DefaultPermissions.CMS_MANAGE,
+    name: 'Manage CMS',
+    module: 'cms',
+  },
 ];
 
 // ─── Role → Permission Mappings ──────────────────────────────────────────────
@@ -861,6 +882,8 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.REVIEW_VIEW,
     DefaultPermissions.USER_VIEW,
     DefaultPermissions.DASHBOARD_VIEW,
+    DefaultPermissions.CMS_VIEW,
+    DefaultPermissions.CMS_MANAGE,
   ],
   [DefaultRoles.WAREHOUSE_MANAGER]: [
     DefaultPermissions.INVENTORY_VIEW,

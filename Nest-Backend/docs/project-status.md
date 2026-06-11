@@ -2743,4 +2743,94 @@ Product Management, Category Management, Brand Management, Orders, Returns, Inve
 - [x] Migration executed successfully (28 migrations total)
 - [x] Seed executed successfully
 
+---
+
+## Layer 23 — System Settings, CMS & Platform Configuration
+
+**Started:** 2026-06-11  
+**Completed:** 2026-06-11  
+**Status:** ✅ Complete
+
+### Module Build Log
+
+| Module | Status | Started | Completed |
+|--------|--------|---------|-----------|
+| System Settings | ✅ | 2026-06-11 | 2026-06-11 |
+| CMS Pages | ✅ | 2026-06-11 | 2026-06-11 |
+| Homepage Sections | ✅ | 2026-06-11 | 2026-06-11 |
+| Contact Settings | ✅ | 2026-06-11 | 2026-06-11 |
+| Site Configuration | ✅ | 2026-06-11 | 2026-06-11 |
+
+### Architecture
+
+```
+src/modules/system-settings-cms/
+├── enums/
+│   ├── cms-page-status.enum.ts      # DRAFT, PUBLISHED
+│   └── cms-page-type.enum.ts        # ABOUT_US, PRIVACY_POLICY, TERMS_AND_CONDITIONS, etc.
+├── entities/
+│   ├── system-setting.entity.ts     # Key-value config (unique key)
+│   ├── cms-page.entity.ts           # Slug-based CMS pages with status/type
+│   ├── homepage-section.entity.ts   # Sortable homepage sections (jsonb content)
+│   ├── contact-setting.entity.ts    # Single-record contact info
+│   └── site-configuration.entity.ts # Single-record site config (maintenance mode)
+├── dto/
+│   ├── system-setting.dto.ts        # SystemSettingDto + Create/Update
+│   ├── cms-page.dto.ts              # CmsPageDto + Create/Update
+│   ├── homepage-section.dto.ts      # HomepageSectionDto + Create/Update/SortOrder
+│   ├── contact-setting.dto.ts       # ContactSettingDto + Upsert
+│   └── site-configuration.dto.ts    # SiteConfigurationDto + Upsert
+├── services/
+│   ├── system-settings.service.ts   # Key-value upsert, findAll, findByKey
+│   ├── cms-page.service.ts          # CRUD + findBySlug (published only)
+│   ├── homepage.service.ts          # CRUD with sortOrder
+│   ├── contact-settings.service.ts  # Singleton upsert
+│   └── site-configuration.service.ts # Singleton upsert
+├── controllers/
+│   ├── admin-settings.controller.ts  # GET/PATCH settings (admin)
+│   ├── admin-cms.controller.ts       # Full CRUD CMS pages (admin)
+│   ├── admin-homepage.controller.ts  # CRUD homepage sections (admin)
+│   ├── admin-contact-settings.controller.ts # GET/PATCH contact (admin)
+│   └── public-content.controller.ts  # GET pages/homepage/contact (public, no auth)
+└── system-settings-cms.module.ts
+```
+
+### Key Design Decisions
+
+- **Single-record tables**: ContactSetting and SiteConfiguration use `find({ take: 1, order: { createdAt: 'DESC' })` to get the first record, create if null, upsert on subsequent calls
+- **Public content endpoints**: `/content/pages/:slug`, `/content/homepage`, `/content/contact` have no auth guard — accessible without authentication
+- **CmsPage.findBySlug**: Only returns PUBLISHED status pages to the public endpoint; admin full CRUD shows all statuses
+- **HomepageSection sorting**: Ordered by `sortOrder ASC` for consistent rendering
+- **Permissions**: `settings.view`, `settings.manage` (SUPER_ADMIN only), `cms.view`, `cms.manage` (SUPER_ADMIN + MARKETING_MANAGER)
+- **No separate `cms_page_type_enum` migration**: Included as nullable field on `cms_pages` table in the same migration
+
+### Deliverables
+
+- [x] SystemSetting Entity (key-value with unique constraint)
+- [x] CmsPage Entity (slug-based with status/type enums)
+- [x] HomepageSection Entity (jsonb content with sortOrder)
+- [x] ContactSetting Entity (single-record pattern)
+- [x] SiteConfiguration Entity (single-record pattern with maintenance mode)
+- [x] CmsPageStatus Enum (DRAFT, PUBLISHED)
+- [x] CmsPageType Enum (7 page types)
+- [x] SystemSettingsService (key-value upsert, findAll, findByKey)
+- [x] CmsPageService (CRUD + findBySlug published-only)
+- [x] HomepageService (CRUD with sortOrder)
+- [x] ContactSettingsService (singleton upsert)
+- [x] SiteConfigurationService (singleton upsert)
+- [x] AdminSettingsController (GET/PATCH with settings.view/manage)
+- [x] AdminCmsController (full CRUD with cms.view/manage)
+- [x] AdminHomepageController (CRUD with cms.view/manage)
+- [x] AdminContactSettingsController (GET/PATCH with settings.view/manage)
+- [x] PublicContentController (3 public endpoints, no auth)
+- [x] SystemSettingsCmsModule
+- [x] Migration Phase23SystemSettingsCms (5 tables + 2 enums + indexes)
+- [x] Seed permissions (settings.view, settings.manage, cms.view, cms.manage)
+- [x] Role mappings updated (SUPER_ADMIN — all via Object.values; MARKETING_MANAGER — cms.view, cms.manage)
+- [x] app.module.ts wiring
+- [x] data-source.ts wiring
+- [x] Zero TypeScript build errors
+- [x] Migration executed successfully (29 migrations total)
+- [x] Seed executed successfully
+
 

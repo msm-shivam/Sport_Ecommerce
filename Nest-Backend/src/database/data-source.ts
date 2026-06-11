@@ -92,6 +92,11 @@ import { SecuritySession } from '../modules/security-compliance/entities/securit
 import { SecurityEvent } from '../modules/security-compliance/entities/security-event.entity';
 import { PrivacyRequest } from '../modules/security-compliance/entities/privacy-request.entity';
 import { ConsentRecord } from '../modules/security-compliance/entities/consent-record.entity';
+import { SystemSetting } from '../modules/system-settings-cms/entities/system-setting.entity';
+import { CmsPage } from '../modules/system-settings-cms/entities/cms-page.entity';
+import { HomepageSection } from '../modules/system-settings-cms/entities/homepage-section.entity';
+import { ContactSetting } from '../modules/system-settings-cms/entities/contact-setting.entity';
+import { SiteConfiguration } from '../modules/system-settings-cms/entities/site-configuration.entity';
 
 dotenv.config();
 
@@ -194,6 +199,11 @@ export const AppDataSource = new DataSource({
     SecurityEvent,
     PrivacyRequest,
     ConsentRecord,
+    SystemSetting,
+    CmsPage,
+    HomepageSection,
+    ContactSetting,
+    SiteConfiguration,
   ],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,

@@ -179,4 +179,9 @@ export enum DefaultPermissions {
   SECURITY_VIEW = 'security.view',
   SECURITY_MANAGE = 'security.manage',
   PRIVACY_MANAGE = 'privacy.manage',
+  // Settings & CMS
+  SETTINGS_VIEW = 'settings.view',
+  SETTINGS_MANAGE = 'settings.manage',
+  CMS_VIEW = 'cms.view',
+  CMS_MANAGE = 'cms.manage',
 }
