@@ -24,6 +24,7 @@ export class CategoriesService {
 
   async create(
     dto: CreateCategoryDto,
+    image: Express.Multer.File,
   ): Promise<{ message: string; data: CategoryResponseDto }> {
     const slug = dto.slug ?? toSlug(dto.name);
     await this.ensureSlugUnique(slug);
@@ -31,7 +32,7 @@ export class CategoriesService {
     const category = this.categoryRepo.create({
       name: dto.name,
       slug,
-      image: dto.image ?? null,
+      image:  image?.filename ?? null,
       description: dto.description ?? null,
       sortOrder: dto.sortOrder ?? 0,
       isActive: dto.isActive ?? true,

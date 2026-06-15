@@ -10,10 +10,13 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -28,6 +31,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { DefaultPermissions } from '../../common/constants/roles.constants';
 import { ApiPaginatedResponse } from '../../common/decorators/api-paginated-response.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Admin — Categories')
 @ApiBearerAuth('JWT')
@@ -37,12 +41,17 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
+@UseInterceptors(FileInterceptor('image'))
+
+@ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
   @Permissions(DefaultPermissions.CATEGORY_CREATE)
+
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({ status: 201, description: 'Category created.' })
-  async create(@Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(dto);
+  async create(@Body() dto: CreateCategoryDto, @UploadedFile() image: Express.Multer.File,) {
+    
+    return this.categoriesService.create(dto,image);
   }
 
   @Get()

@@ -45,4 +45,5 @@ export class CreateBrandDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+  
 }
