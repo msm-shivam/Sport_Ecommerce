@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { ReturnRequestStatus } from '../enums/return-request-status.enum';
 
 export class ReturnQueryDto {
@@ -15,9 +15,11 @@ export class ReturnQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   page?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   limit?: number;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useState, useEffect, useTransition, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,8 @@ import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
 import StatsCard from '@/components/shared/StatsCard';
-import { INITIAL_CUSTOMERS, Customer } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { Customer } from '@/services/types';
 import { Plus, Users, UserCheck, UserX, UserPlus } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -35,7 +36,17 @@ export default function CustomersPage({
   const status = (resolvedSearchParams.status as string) || '';
   const [, startTransition] = useTransition();
 
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+  const { data: usersRes } = usePaginatedQuery<Customer>('customers', '/admin/users', { limit: 5, page: 1 });
+  const apiCustomers = usersRes?.data?.items || [];
+  const totalCustomers = usersRes?.data?.total || 0;
+
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  useEffect(() => {
+    if (apiCustomers.length > 0) {
+      setCustomers(apiCustomers);
+    }
+  }, [apiCustomers]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
@@ -135,7 +146,7 @@ export default function CustomersPage({
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatsCard title="Total Customers" value={customers.length} icon={Users} />
+        <StatsCard title="Total Customers" value={totalCustomers} icon={Users} />
         <StatsCard title="Active" value={customers.filter(c => c.status === 'active').length} icon={UserCheck} trend={{ value: 8.3, isPositive: true, label: 'active rate' }} />
         <StatsCard title="Inactive" value={customers.filter(c => c.status === 'inactive').length} icon={UserX} />
         <StatsCard title="New This Month" value={customers.filter(c => c.registrationDate >= '2026-06-01').length} icon={UserPlus} trend={{ value: 2, isPositive: true, label: 'new registrations' }} />
@@ -145,7 +156,7 @@ export default function CustomersPage({
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Customer Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Customers</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{customers.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Customers</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalCustomers}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active</span><span className="font-bold text-green-600">{customers.filter(c => c.status === 'active').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Inactive</span><span className="font-bold text-red-500">{customers.filter(c => c.status === 'inactive').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">New This Month</span><span className="font-bold text-blue-600">{customers.filter(c => c.registrationDate >= '2026-06-01').length}</span></div>

@@ -14,7 +14,7 @@ export class InventoryAudit {
   @Column({ name: 'variant_id', type: 'uuid' })
   variantId: string;
 
-  @Column({ type: 'enum', enum: AuditActionType })
+  @Column({ name: 'action_type', type: 'enum', enum: AuditActionType })
   actionType: AuditActionType;
 
   @Column({ name: 'before_quantity', type: 'int' })

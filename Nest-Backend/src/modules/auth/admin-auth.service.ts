@@ -124,6 +124,7 @@ export class AdminAuthService {
     const accessPayload: AdminJwtPayload = {
       sub: admin.id,
       email: admin.email,
+      name: admin.name,
       type: 'admin',
       roles,
       permissions,

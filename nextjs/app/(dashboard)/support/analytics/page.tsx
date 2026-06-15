@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
-import { INITIAL_SUPPORT_ANALYTICS, SupportAnalytics } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import * as Types from '@/services/types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function AnalyticsPage({
@@ -13,14 +14,19 @@ export default function AnalyticsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
 
-  const [analytics] = useState<SupportAnalytics[]>(INITIAL_SUPPORT_ANALYTICS);
+  const { data: analyticsRes, isLoading } = usePaginatedQuery<Types.SupportAnalytics>(
+    'support-analytics',
+    '/admin/support-analytics',
+    { page, limit, search }
+  );
 
-  const filtered = analytics.filter((item) => {
-    return item.metric.toLowerCase().includes(search.toLowerCase());
-  });
+  const analytics = analyticsRes?.data?.items || [];
+  const totalItems = analyticsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -67,9 +73,10 @@ export default function AnalyticsPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={analytics}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={totalItems}
+        loading={isLoading}
       />
     </div>
   );

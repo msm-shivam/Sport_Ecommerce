@@ -11,7 +11,7 @@ export class SavedReport extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'enum', enum: ReportType })
+  @Column({ name: 'report_type', type: 'enum', enum: ReportType })
   reportType: ReportType;
 
   @Column({ name: 'filters_json', type: 'jsonb' })

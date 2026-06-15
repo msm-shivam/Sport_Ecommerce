@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_COUPONS, Coupon } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
+import * as Types from '@/services/types';
 
 export default function CouponsPage({
   searchParams: searchParamsPromise,
@@ -14,15 +17,20 @@ export default function CouponsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
-  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
+  const { data: couponsRes, isLoading } = usePaginatedQuery<Types.Coupon>(
+    'coupons',
+    '/admin/coupons',
+    { page, limit, search }
+  );
 
-  const filtered = coupons.filter((item) => {
-    const q = search.toLowerCase();
-    return item.code.toLowerCase().includes(q) || item.title.toLowerCase().includes(q);
-  });
+  const coupons = couponsRes?.data?.items || [];
+  const totalItems = couponsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -37,6 +45,17 @@ export default function CouponsPage({
     startTransition(() => {
       updateUrl({ search: val, page: 1 });
     });
+  };
+
+  const handleSort = (key: string, dir: 'asc' | 'desc') => {
+    startTransition(() => {
+      updateUrl({ sortBy: key, sortOrder: dir });
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    await apiClient.delete(`/admin/coupons/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['coupons'] });
   };
 
   const columns: TableColumn[] = [
@@ -55,12 +74,14 @@ export default function CouponsPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={coupons}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={totalItems}
+        loading={isLoading}
+        onSort={handleSort}
         rowActions={(row: any) => (
           <AppRowActions
-            onDelete={() => setCoupons(coupons.filter((c) => c.id !== row.id))}
+            onDelete={() => handleDelete(row.id)}
           />
         )}
       />

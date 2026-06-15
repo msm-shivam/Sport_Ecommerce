@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_PRIVACY_REQUESTS, PrivacyRequest } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import { useQueryParams } from '@/hooks/useQueryParams';
 
 function formatRequestType(type: string) {
   return type
@@ -15,36 +16,18 @@ function formatRequestType(type: string) {
     .join(' ');
 }
 
-export default function PrivacyRequestsPage({
-  searchParams: searchParamsPromise,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const resolvedSearchParams = use(searchParamsPromise);
-  const search = (resolvedSearchParams.search as string) || '';
-  const [requests] = useState<PrivacyRequest[]>(INITIAL_PRIVACY_REQUESTS);
-  const [, startTransition] = useTransition();
+export default function PrivacyRequestsPage() {
+  const { getQueryParam, setQueryParams } = useQueryParams();
+  const page = parseInt(getQueryParam('page', '1'), 10);
+  const limit = parseInt(getQueryParam('limit', '10'), 10);
+  const search = getQueryParam('search');
 
-  const filtered = requests.filter((item) => {
-    return (
-      item.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      item.email.toLowerCase().includes(search.toLowerCase())
-    );
-  });
-
-  const updateUrl = (newParams: Record<string, string | number | null>) => {
-    const url = new URL(window.location.href);
-    Object.entries(newParams).forEach(([k, v]) => {
-      if (v === null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, String(v));
-    });
-    window.history.pushState({}, '', url.toString());
-  };
+  const { data, isLoading } = usePaginatedQuery<any>('privacy-requests', '/admin/privacy', { page, limit, search });
+  const requests = data?.data?.items || [];
+  const total = data?.data?.total || 0;
 
   const handleSearchChange = (val: string) => {
-    startTransition(() => {
-      updateUrl({ search: val, page: 1 });
-    });
+    setQueryParams({ search: val, page: 1 });
   };
 
   const columns: TableColumn[] = [
@@ -74,9 +57,10 @@ export default function PrivacyRequestsPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={requests}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={total}
+        loading={isLoading}
         rowActions={() => <AppRowActions />}
       />
     </div>

@@ -2,10 +2,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/a
 
 export const API_PATHS = {
   auth: {
-    login: `${API_BASE_URL}/auth/login`,
-    forgotPassword: `${API_BASE_URL}/auth/forgot-password`,
-    resetPassword: `${API_BASE_URL}/auth/reset-password`,
-    me: `${API_BASE_URL}/auth/me`,
+    login: `${API_BASE_URL}/admin/auth/login`,
+    refresh: `${API_BASE_URL}/admin/auth/refresh`,
+    logout: `${API_BASE_URL}/admin/auth/logout`,
+  },
+  dashboard: {
+    main: `${API_BASE_URL}/admin/dashboards/main`,
   },
   catalog: {
     products: `${API_BASE_URL}/catalog/products`,

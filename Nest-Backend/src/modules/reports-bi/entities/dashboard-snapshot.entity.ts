@@ -10,7 +10,7 @@ export class DashboardSnapshot extends BaseEntity {
   @Column({ name: 'snapshot_date', type: 'timestamptz' })
   snapshotDate: Date;
 
-  @Column({ type: 'enum', enum: DashboardType })
+  @Column({ name: 'dashboard_type', type: 'enum', enum: DashboardType })
   dashboardType: DashboardType;
 
   @Column({ name: 'metrics_json', type: 'jsonb' })

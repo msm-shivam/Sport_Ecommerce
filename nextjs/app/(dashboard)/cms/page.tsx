@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useState, useEffect, useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import StatsCard from '@/components/shared/StatsCard';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_CMS_PAGES, INITIAL_CMS_SECTIONS } from '@/services/mockData';
-import type { CmsPage } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { CmsPage } from '@/services/types';
 import { Plus, FileText, CheckCircle, FileEdit, LayoutGrid } from 'lucide-react';
 
 export default function CmsPage({
@@ -18,9 +18,22 @@ export default function CmsPage({
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
   const search = (resolvedSearchParams.search as string) || '';
-  const [pages, setPages] = useState<CmsPage[]>(INITIAL_CMS_PAGES);
-  const [sections] = useState(INITIAL_CMS_SECTIONS);
   const [, startTransition] = useTransition();
+
+  const { data: pagesRes } = usePaginatedQuery<CmsPage>('cms-pages', '/admin/cms-pages', { limit: 5, page: 1 });
+  const { data: homepageRes } = usePaginatedQuery('homepage', '/admin/homepage', { limit: 1 });
+
+  const apiPages = pagesRes?.data?.items || [];
+  const totalPages = pagesRes?.data?.total || 0;
+  const sectionsCount = homepageRes?.data?.total || 0;
+
+  const [pages, setPages] = useState<CmsPage[]>([]);
+
+  useEffect(() => {
+    if (apiPages.length > 0) {
+      setPages(apiPages);
+    }
+  }, [apiPages]);
 
   const filteredPages = pages.filter((item) => {
     return (
@@ -68,20 +81,20 @@ export default function CmsPage({
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatsCard title="Total Pages" value={pages.length} icon={FileText} />
+        <StatsCard title="Total Pages" value={totalPages} icon={FileText} />
         <StatsCard title="Published" value={pages.filter(p => p.status === 'published').length} icon={CheckCircle} trend={{ value: 66.7, isPositive: true, label: 'published rate' }} />
         <StatsCard title="Draft" value={pages.filter(p => p.status === 'draft').length} icon={FileEdit} />
-        <StatsCard title="Sections" value={sections.length} icon={LayoutGrid} />
+        <StatsCard title="Sections" value={sectionsCount} icon={LayoutGrid} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">CMS Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Pages</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{pages.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Pages</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalPages}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Published</span><span className="font-bold text-green-600">{pages.filter(p => p.status === 'published').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Draft</span><span className="font-bold text-amber-500">{pages.filter(p => p.status === 'draft').length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Sections</span><span className="font-bold text-blue-600">{sections.filter(s => s.status === 'active').length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Sections</span><span className="font-bold text-blue-600">{sectionsCount}</span></div>
           </div>
         </div>
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">

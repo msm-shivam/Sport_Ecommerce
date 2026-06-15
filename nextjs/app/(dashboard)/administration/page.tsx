@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useState, useEffect, useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
 import StatsCard from '@/components/shared/StatsCard';
-import { INITIAL_ADMIN_USERS, INITIAL_ROLES, INITIAL_PERMISSIONS, AdminUser } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { AdminUser } from '@/services/types';
 import { ShieldAlert, UserPlus, ShieldCheck, Users, Key, ClipboardList } from 'lucide-react';
 
 export default function AdministrationPage({
@@ -17,10 +18,24 @@ export default function AdministrationPage({
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
   const search = (resolvedSearchParams.search as string) || '';
-  const [users, setUsers] = useState<AdminUser[]>(INITIAL_ADMIN_USERS);
-  const [roles] = useState(INITIAL_ROLES);
-  const [permissions] = useState(INITIAL_PERMISSIONS);
   const [, startTransition] = useTransition();
+
+  const { data: usersRes } = usePaginatedQuery<AdminUser>('admin-users', '/admin/users', { limit: 5, page: 1 });
+  const { data: rolesRes } = usePaginatedQuery('admin-roles', '/admin/roles', { limit: 1 });
+  const { data: permissionsRes } = usePaginatedQuery('admin-permissions', '/admin/permissions', { limit: 1 });
+
+  const apiUsers = usersRes?.data?.items || [];
+  const totalUsers = usersRes?.data?.total || 0;
+  const totalRoles = rolesRes?.data?.total || 0;
+  const totalPermissions = permissionsRes?.data?.total || 0;
+
+  const [users, setUsers] = useState<AdminUser[]>([]);
+
+  useEffect(() => {
+    if (apiUsers.length > 0) {
+      setUsers(apiUsers);
+    }
+  }, [apiUsers]);
 
   const filteredUsers = users.filter((item) => {
     return (
@@ -71,21 +86,21 @@ export default function AdministrationPage({
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatsCard title="Total Users" value={users.length} icon={Users} />
+        <StatsCard title="Total Users" value={totalUsers} icon={Users} />
         <StatsCard title="Active" value={users.filter(u => u.status === 'active').length} icon={ShieldCheck} trend={{ value: 75, isPositive: true, label: 'active rate' }} />
-        <StatsCard title="Security Roles" value={roles.length} icon={Key} />
-        <StatsCard title="Permissions" value={permissions.length} icon={ClipboardList} />
+        <StatsCard title="Security Roles" value={totalRoles} icon={Key} />
+        <StatsCard title="Permissions" value={totalPermissions} icon={ClipboardList} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Administration Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Users</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{users.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Users</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalUsers}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active</span><span className="font-bold text-green-600">{users.filter(u => u.status === 'active').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Inactive</span><span className="font-bold text-red-500">{users.filter(u => u.status === 'inactive').length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Security Roles</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{roles.length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Permissions</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{permissions.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Security Roles</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalRoles}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Permissions</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalPermissions}</span></div>
           </div>
         </div>
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">

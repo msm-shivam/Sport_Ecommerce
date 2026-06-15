@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState, useTransition, use } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_ORDERS, Order } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
+import * as Types from '@/services/types';
 import StatsCard from '@/components/shared/StatsCard';
 import { Check, Truck, XCircle, ShoppingCart, CheckCircle, Clock, DollarSign } from 'lucide-react';
 
@@ -16,23 +19,23 @@ export default function OrdersPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const status = (resolvedSearchParams.status as string) || '';
   const paymentStatus = (resolvedSearchParams.paymentStatus as string) || '';
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+  const { data: ordersRes, isLoading } = usePaginatedQuery<Types.Order>(
+    'orders',
+    '/admin/orders',
+    { page, limit, search, status, paymentStatus }
+  );
 
-  // Filter orders
-  const filteredOrders = orders.filter((item) => {
-    const matchesSearch =
-      item.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      item.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      item.phone.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || item.status === status;
-    const matchesPayment = !paymentStatus || item.paymentStatus === paymentStatus;
-    return matchesSearch && matchesStatus && matchesPayment;
-  });
+  const orders = ordersRes?.data?.items || [];
+  const totalItems = ordersRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -61,17 +64,34 @@ export default function OrdersPage({
     });
   };
 
-  // Actions
-  const handleMarkShipped = (id: string) => {
-    setOrders(orders.map((o) => (o.id === id ? { ...o, status: 'processing' } : o)));
+  const handleMarkShipped = async (id: string) => {
+    setIsSaving(true);
+    try {
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'shipped' });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleMarkDelivered = (id: string) => {
-    setOrders(orders.map((o) => (o.id === id ? { ...o, status: 'delivered', paymentStatus: 'paid' } : o)));
+  const handleMarkDelivered = async (id: string) => {
+    setIsSaving(true);
+    try {
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'delivered' });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleCancelOrder = (id: string) => {
-    setOrders(orders.map((o) => (o.id === id ? { ...o, status: 'cancelled' } : o)));
+  const handleCancelOrder = async (id: string) => {
+    setIsSaving(true);
+    try {
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'cancelled' });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const columns: TableColumn[] = [
@@ -130,7 +150,6 @@ export default function OrdersPage({
         </div>
       </div>
 
-      {/* Toolbar filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white p-4 rounded-xl border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800">
         <SearchInput value={search} onChange={handleSearchChange} placeholder="Search order #, customer, phone..." />
 
@@ -161,9 +180,10 @@ export default function OrdersPage({
       </div>
 
       <AppDataTable
-        data={filteredOrders}
+        data={orders}
         columns={columns}
-        totalItems={filteredOrders.length}
+        totalItems={totalItems}
+        loading={isLoading}
         rowActions={(row: any) => (
           <AppRowActions
             extraActions={[

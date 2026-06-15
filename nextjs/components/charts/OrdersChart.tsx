@@ -21,7 +21,7 @@ const data = [
   { day: 'Sun', orders: 33, completed: 28 },
 ];
 
-export function OrdersChart() {
+const OrdersChart = React.memo(function OrdersChart() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mb-4">
@@ -49,6 +49,7 @@ export function OrdersChart() {
       </div>
     </div>
   );
-}
+});
 
+export { OrdersChart };
 export default OrdersChart;

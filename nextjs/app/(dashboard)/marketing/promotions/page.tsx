@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { INITIAL_PROMOTIONS, Promotion } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import * as Types from '@/services/types';
 
 export default function PromotionsPage({
   searchParams: searchParamsPromise,
@@ -13,14 +14,19 @@ export default function PromotionsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
 
-  const [promotions] = useState<Promotion[]>(INITIAL_PROMOTIONS);
+  const { data: promotionsRes, isLoading } = usePaginatedQuery<Types.Promotion>(
+    'promotions',
+    '/admin/promotions',
+    { page, limit, search }
+  );
 
-  const filtered = promotions.filter((item) => {
-    return item.title.toLowerCase().includes(search.toLowerCase());
-  });
+  const promotions = promotionsRes?.data?.items || [];
+  const totalItems = promotionsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -34,6 +40,12 @@ export default function PromotionsPage({
   const handleSearchChange = (val: string) => {
     startTransition(() => {
       updateUrl({ search: val, page: 1 });
+    });
+  };
+
+  const handleSort = (key: string, dir: 'asc' | 'desc') => {
+    startTransition(() => {
+      updateUrl({ sortBy: key, sortOrder: dir });
     });
   };
 
@@ -54,9 +66,11 @@ export default function PromotionsPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={promotions}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={totalItems}
+        loading={isLoading}
+        onSort={handleSort}
       />
     </div>
   );

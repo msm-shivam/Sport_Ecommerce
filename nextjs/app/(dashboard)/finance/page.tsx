@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import StatsCard from '@/components/shared/StatsCard';
 import { DollarSign, CheckCircle, XCircle, ArrowDownUp } from 'lucide-react';
-import { INITIAL_TRANSACTIONS, Transaction } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { Transaction } from '@/services/types';
 
 export default function FinancePage({
   searchParams: searchParamsPromise,
@@ -16,8 +17,11 @@ export default function FinancePage({
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
   const search = (resolvedSearchParams.search as string) || '';
-  const [txns] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [, startTransition] = useTransition();
+
+  const { data: financeRes } = usePaginatedQuery<Transaction>('finance', '/admin/finance', { limit: 5, page: 1 });
+  const txns = financeRes?.data?.items || [];
+  const totalTransactions = financeRes?.data?.total || 0;
 
   const filteredTxns = txns.filter((item) => {
     return item.transactionNumber.toLowerCase().includes(search.toLowerCase());
@@ -55,7 +59,7 @@ export default function FinancePage({
       <PageHeader title="Finance" description="Monitor business ledger, payments, and refunds." />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatsCard title="Total Transactions" value={txns.length} icon={ArrowDownUp} />
+        <StatsCard title="Total Transactions" value={totalTransactions} icon={ArrowDownUp} />
         <StatsCard title="Successful" value={txns.filter(t => t.status === 'success').length} icon={CheckCircle} trend={{ value: 66.7, isPositive: true, label: 'success rate' }} />
         <StatsCard title="Failed" value={txns.filter(t => t.status === 'failed').length} icon={XCircle} />
         <StatsCard title="Total Revenue" value={'$' + txns.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0).toFixed(2)} icon={DollarSign} />
@@ -65,7 +69,7 @@ export default function FinancePage({
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Finance Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Transactions</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{txns.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Transactions</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalTransactions}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Successful</span><span className="font-bold text-green-600">{txns.filter(t => t.status === 'success').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Pending</span><span className="font-bold text-amber-500">{txns.filter(t => t.status === 'pending').length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Failed</span><span className="font-bold text-red-500">{txns.filter(t => t.status === 'failed').length}</span></div>

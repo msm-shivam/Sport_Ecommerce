@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useState, useEffect, useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import StatsCard from '@/components/shared/StatsCard';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_COUPONS, INITIAL_PROMOTIONS, INITIAL_CAMPAIGNS, INITIAL_EMAIL_TEMPLATES, Coupon } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { Coupon } from '@/services/types';
 import { Plus, Percent, Tag, Megaphone, Mail } from 'lucide-react';
 
 export default function MarketingPage({
@@ -17,11 +18,28 @@ export default function MarketingPage({
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
   const search = (resolvedSearchParams.search as string) || '';
-  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
-  const [promotions] = useState(INITIAL_PROMOTIONS);
-  const [campaigns] = useState(INITIAL_CAMPAIGNS);
-  const [templates] = useState(INITIAL_EMAIL_TEMPLATES);
   const [, startTransition] = useTransition();
+
+  const { data: couponsRes } = usePaginatedQuery<Coupon>('coupons', '/admin/coupons', { limit: 5, page: 1 });
+  const { data: promotionsRes } = usePaginatedQuery('promotions', '/admin/promotions', { limit: 5, page: 1 });
+  const { data: campaignsRes } = usePaginatedQuery('campaigns', '/admin/campaigns', { limit: 5, page: 1 });
+  const { data: templatesRes } = usePaginatedQuery('email-templates', '/admin/email-templates', { limit: 5, page: 1 });
+
+  const apiCoupons = couponsRes?.data?.items || [];
+  const totalCoupons = couponsRes?.data?.total || 0;
+  const totalPromotions = promotionsRes?.data?.total || 0;
+  const apiCampaigns = campaignsRes?.data?.items || [];
+  const totalCampaigns = campaignsRes?.data?.total || 0;
+  const apiTemplates = templatesRes?.data?.items || [];
+  const totalTemplates = templatesRes?.data?.total || 0;
+
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+
+  useEffect(() => {
+    if (apiCoupons.length > 0) {
+      setCoupons(apiCoupons);
+    }
+  }, [apiCoupons]);
 
   const filteredCoupons = coupons.filter((item) => {
     const matchesSearch =
@@ -74,20 +92,20 @@ export default function MarketingPage({
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatsCard title="Active Coupons" value={coupons.filter(c => c.status === 'active').length} icon={Tag} />
-        <StatsCard title="Active Promotions" value={promotions.filter(p => p.status === 'active').length} icon={Percent} trend={{ value: 25, isPositive: true, label: 'promo rate' }} />
-        <StatsCard title="Campaigns" value={campaigns.length} icon={Megaphone} />
-        <StatsCard title="Email Templates" value={templates.length} icon={Mail} trend={{ value: 1, isPositive: true, label: 'new template' }} />
+        <StatsCard title="Active Promotions" value={totalPromotions} icon={Percent} trend={{ value: 25, isPositive: true, label: 'promo rate' }} />
+        <StatsCard title="Campaigns" value={totalCampaigns} icon={Megaphone} />
+        <StatsCard title="Email Templates" value={totalTemplates} icon={Mail} trend={{ value: 1, isPositive: true, label: 'new template' }} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Marketing Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Coupons</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{coupons.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Coupons</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalCoupons}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Coupons</span><span className="font-bold text-green-600">{coupons.filter(c => c.status === 'active').length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Promotions</span><span className="font-bold text-blue-600">{promotions.filter(p => p.status === 'active').length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Campaigns</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{campaigns.length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Email Templates</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{templates.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Promotions</span><span className="font-bold text-blue-600">{totalPromotions}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Campaigns</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalCampaigns}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Email Templates</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalTemplates}</span></div>
           </div>
         </div>
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">

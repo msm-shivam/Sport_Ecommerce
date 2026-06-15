@@ -31,11 +31,11 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         setTimeout(() => router.push('/dashboard'), 100);
       } else {
-        setError('Invalid email or password. Please use the credentials shown below.');
+        setError(result.message || 'Invalid email or password');
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');

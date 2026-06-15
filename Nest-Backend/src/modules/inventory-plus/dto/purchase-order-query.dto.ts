@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PurchaseOrderStatus } from '../enums/purchase-order-status.enum';
 
@@ -20,9 +20,11 @@ export class PurchaseOrderQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   page?: number = 1;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   limit?: number = 20;
 }

@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState, useTransition, use } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_REVIEWS, Review } from '@/services/mockData';
+import { Review } from '@/types/catalog';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
 import { Star, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ReviewsPage({
@@ -20,19 +23,17 @@ export default function ReviewsPage({
   const search = (resolvedSearchParams.search as string) || '';
   const status = (resolvedSearchParams.status as string) || '';
 
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const queryClient = useQueryClient();
   const [, startTransition] = useTransition();
 
-  const filteredReviews = reviews.filter((item) => {
-    const matchesSearch =
-      item.productName.toLowerCase().includes(search.toLowerCase()) ||
-      item.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      item.comment.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || item.status === status;
-    return matchesSearch && matchesStatus;
-  });
+  const { data: reviewsRes, isLoading } = usePaginatedQuery<Review>(
+    'reviews',
+    '/admin/reviews',
+    { page, limit, search, status }
+  );
 
-  const paginatedReviews = filteredReviews.slice((page - 1) * limit, page * limit);
+  const reviews = reviewsRes?.data?.items || [];
+  const totalReviews = reviewsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -55,16 +56,19 @@ export default function ReviewsPage({
     });
   };
 
-  const handleApprove = (id: string) => {
-    setReviews(reviews.map((r) => (r.id === id ? { ...r, status: 'approved' } : r)));
+  const handleApprove = async (id: string) => {
+    await apiClient.patch(`/admin/reviews/${id}`, { status: 'approved' });
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
   };
 
-  const handleReject = (id: string) => {
-    setReviews(reviews.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r)));
+  const handleReject = async (id: string) => {
+    await apiClient.patch(`/admin/reviews/${id}`, { status: 'rejected' });
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
   };
 
-  const handleDelete = (id: string) => {
-    setReviews(reviews.filter((r) => r.id !== id));
+  const handleDelete = async (id: string) => {
+    await apiClient.delete(`/admin/reviews/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
   };
 
   const columns: TableColumn[] = [
@@ -110,9 +114,10 @@ export default function ReviewsPage({
       </div>
 
       <AppDataTable
-        data={paginatedReviews}
+        data={reviews}
         columns={columns}
-        totalItems={filteredReviews.length}
+        totalItems={totalReviews}
+        loading={isLoading}
         rowActions={(row: any) => (
           <AppRowActions
             onDelete={() => handleDelete(row.id)}

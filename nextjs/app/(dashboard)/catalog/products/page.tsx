@@ -4,6 +4,7 @@ import React, { useState, useTransition, use, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import AppDrawer from '@/components/modal/AppDrawer';
@@ -15,10 +16,11 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import StatsCard from '@/components/shared/StatsCard';
 import AppRowActions from '@/components/table/AppRowActions';
 import AppBulkActions from '@/components/table/AppBulkActions';
-import { Product } from '@/types/catalog';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
+import * as Types from '@/services/types';
 import { Package, CheckCircle, FileText, AlertTriangle, Plus, RotateCcw } from 'lucide-react';
 import PermissionGuard from '@/components/layout/PermissionGuard';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_BRANDS } from '@/services/mockData';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -48,10 +50,9 @@ export default function ProductsPage({
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [sortKey, setSortKey] = useState<string>('name');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [editingProduct, setEditingProduct] = useState<Types.Product | null>(null);
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -61,13 +62,12 @@ export default function ProductsPage({
     reset,
     formState: { errors },
   } = useForm<ProductFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: '',
       sku: '',
-      category: 'Running',
-      brand: 'Nike',
+      category: '',
+      brand: '',
       price: 0,
       stock: 0,
       status: 'active',
@@ -77,47 +77,46 @@ export default function ProductsPage({
 
   const productImage = watch('image');
 
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const { data: productsRes, isLoading } = usePaginatedQuery<Types.Product>(
+    'products',
+    '/admin/products',
+    { page, limit, search, status, category: categoryFilter, brand: brandFilter }
+  );
 
-  const totalProducts = products.length;
-  const activeProducts = products.filter((p) => p.status === 'active').length;
-  const draftProducts = products.filter((p) => p.status === 'inactive').length;
-  const outOfStockProducts = products.filter((p) => p.status === 'out of stock' || p.stock === 0).length;
+  const { data: categoriesRes } = usePaginatedQuery<Types.Category>(
+    'categories',
+    '/admin/categories',
+    { limit: 100 }
+  );
+
+  const { data: brandsRes } = usePaginatedQuery<Types.Brand>(
+    'brands',
+    '/admin/brands',
+    { limit: 100 }
+  );
+
+  const products = productsRes?.data?.items || [];
+  const totalItems = productsRes?.data?.total || 0;
+  const categories = categoriesRes?.data?.items || [];
+  const brands = brandsRes?.data?.items || [];
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const totalProducts = totalItems;
+  const activeCount = products.filter((p) => p.status === 'active').length;
+  const draftCount = products.filter((p) => p.status === 'inactive').length;
+  const oosCount = products.filter((p) => p.status === 'out of stock' || p.stock === 0).length;
 
   const statsCards = useMemo(
     () => [
       { title: 'Total Products', value: totalProducts, icon: Package },
-      { title: 'Active Products', value: activeProducts, icon: CheckCircle, trend: { value: 12, isPositive: true } },
-      { title: 'Draft Products', value: draftProducts, icon: FileText },
-      { title: 'Out Of Stock', value: outOfStockProducts, icon: AlertTriangle, trend: { value: 8, isPositive: false } },
+      { title: 'Active Products', value: activeCount, icon: CheckCircle, trend: { value: 12, isPositive: true } },
+      { title: 'Draft Products', value: draftCount, icon: FileText },
+      { title: 'Out Of Stock', value: oosCount, icon: AlertTriangle, trend: { value: 8, isPositive: false } },
     ],
-    [totalProducts, activeProducts, draftProducts, outOfStockProducts]
+    [totalProducts, activeCount, draftCount, oosCount]
   );
 
-  const filteredProducts = products.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || item.status === status;
-    const matchesCategory = !categoryFilter || item.category === categoryFilter;
-    const matchesBrand = !brandFilter || item.brand === brandFilter;
-    return matchesSearch && matchesStatus && matchesCategory && matchesBrand;
-  });
-
-  const sortedProducts = [...filteredProducts].sort((a: Product, b: Product) => {
-    const valA = (a as unknown as Record<string, unknown>)[sortKey];
-    const valB = (b as unknown as Record<string, unknown>)[sortKey];
-    if (typeof valA === 'number' && typeof valB === 'number') {
-      return sortDir === 'asc' ? valA - valB : valB - valA;
-    }
-    return sortDir === 'asc'
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA));
-  });
-
-  const paginatedProducts = sortedProducts.slice((page - 1) * limit, page * limit);
-
-  // Sync state helpers
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
     Object.entries(newParams).forEach(([k, v]) => {
@@ -162,8 +161,8 @@ export default function ProductsPage({
     reset({
       name: '',
       sku: '',
-      category: 'Running',
-      brand: 'Nike',
+      category: '',
+      brand: '',
       price: 0,
       stock: 0,
       status: 'active',
@@ -172,7 +171,7 @@ export default function ProductsPage({
     setDrawerOpen(true);
   };
 
-  const handleOpenEditDrawer = (product: Product) => {
+  const handleOpenEditDrawer = (product: Types.Product) => {
     setEditingProduct(product);
     reset({
       name: product.name,
@@ -187,42 +186,46 @@ export default function ProductsPage({
     setDrawerOpen(true);
   };
 
-  const handleSave = (values: ProductFormValues) => {
-    if (editingProduct) {
-      setProducts(
-        products.map((p) => (p.id === editingProduct.id ? { ...p, ...values } : p))
-      );
-    } else {
-      const newProduct: Product = {
-        id: crypto.randomUUID(),
-        ...values,
-      };
-      setProducts([newProduct, ...products]);
+  const handleSave = async (values: ProductFormValues) => {
+    setIsSaving(true);
+    try {
+      if (editingProduct) {
+        await apiClient.patch(`/admin/products/${editingProduct.id}`, values);
+      } else {
+        await apiClient.post('/admin/products', values);
+      }
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setDrawerOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setDrawerOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    await apiClient.delete(`/admin/products/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['products'] });
   };
 
-  const handleBulkDelete = () => {
-    setProducts(products.filter((p) => !selectedIds.includes(p.id)));
+  const handleBulkDelete = async () => {
+    for (const id of selectedIds) {
+      await apiClient.delete(`/admin/products/${id}`);
+    }
+    queryClient.invalidateQueries({ queryKey: ['products'] });
     setSelectedIds([]);
   };
 
-  const handleSort = (key: string, dir: 'asc' | 'desc') => {
-    setSortKey(key);
-    setSortDir(dir);
+  const handleSort = (_key: string, _dir: 'asc' | 'desc') => {
+    startTransition(() => {
+      updateUrl({ sortBy: _key, sortOrder: _dir });
+    });
   };
 
-  // Columns definition
   const columns: TableColumn[] = [
     {
       key: 'image',
       label: 'Image',
-      render: (val) => (
-        <img src={val} alt="Product" className="h-10 w-10 rounded-lg object-cover border border-zinc-200" />
+      render: (val: string) => (
+        val ? <img src={val} alt="Product" className="h-10 w-10 rounded-lg object-cover border border-zinc-200" /> : <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800" />
       ),
     },
     { key: 'name', label: 'Product Name', sortable: true },
@@ -233,13 +236,13 @@ export default function ProductsPage({
       key: 'price',
       label: 'Price',
       sortable: true,
-      render: (val) => `$${Number(val).toFixed(2)}`,
+      render: (val: number) => `$${Number(val).toFixed(2)}`,
     },
     {
       key: 'stock',
       label: 'Stock',
       sortable: true,
-      render: (val) => (
+      render: (val: number) => (
         <span className={val === 0 ? 'text-rose-500 font-bold' : val < 10 ? 'text-amber-500 font-bold' : 'text-zinc-700 dark:text-zinc-300'}>
           {val} {val === 0 ? '(Out of Stock)' : val < 10 ? '(Low Stock)' : ''}
         </span>
@@ -249,7 +252,7 @@ export default function ProductsPage({
       key: 'status',
       label: 'Status',
       sortable: true,
-      render: (val) => <StatusBadge status={val} />,
+      render: (val: string) => <StatusBadge status={val} />,
     },
   ];
 
@@ -267,20 +270,16 @@ export default function ProductsPage({
         </PermissionGuard>
       </PageHeader>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {statsCards.map((stat) => (
           <StatsCard key={stat.title} {...stat} />
         ))}
       </div>
 
-      {/* Bulk Action Bar */}
       <AppBulkActions selectedCount={selectedIds.length} onBulkDelete={handleBulkDelete} />
 
-      {/* Filter Toolbar Section */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white p-4 rounded-xl border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800">
         <SearchInput value={search} onChange={handleSearchChange} placeholder="Search name or SKU..." />
-
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={status}
@@ -299,7 +298,7 @@ export default function ProductsPage({
             className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-orange-500 dark:border-zinc-800 dark:bg-zinc-950"
           >
             <option value="">All Categories</option>
-            {INITIAL_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
@@ -310,7 +309,7 @@ export default function ProductsPage({
             className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-orange-500 dark:border-zinc-800 dark:bg-zinc-950"
           >
             <option value="">All Brands</option>
-            {INITIAL_BRANDS.map((b) => (
+            {brands.map((b) => (
               <option key={b.id} value={b.name}>{b.name}</option>
             ))}
           </select>
@@ -325,11 +324,11 @@ export default function ProductsPage({
         </div>
       </div>
 
-      {/* Table Section */}
       <AppDataTable
-        data={paginatedProducts}
+        data={products}
         columns={columns}
-        totalItems={sortedProducts.length}
+        totalItems={totalItems}
+        loading={isLoading}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         onSort={handleSort}
@@ -341,7 +340,6 @@ export default function ProductsPage({
         )}
       />
 
-      {/* Creation/Edit Drawer */}
       <AppDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -354,13 +352,13 @@ export default function ProductsPage({
           <div className="grid grid-cols-2 gap-4">
             <AppSelect
               label="Category"
-              options={INITIAL_CATEGORIES.map((c) => ({ value: c.name, label: c.name }))}
+              options={categories.map((c: Types.Category) => ({ value: c.name, label: c.name }))}
               register={register('category')}
               error={errors.category?.message}
             />
             <AppSelect
               label="Brand"
-              options={INITIAL_BRANDS.map((b) => ({ value: b.name, label: b.name }))}
+              options={brands.map((b: Types.Brand) => ({ value: b.name, label: b.name }))}
               register={register('brand')}
               error={errors.brand?.message}
             />
@@ -399,9 +397,10 @@ export default function ProductsPage({
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors"
+              disabled={isSaving}
+              className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors disabled:opacity-50"
             >
-              Save Product
+              {isSaving ? 'Saving...' : 'Save Product'}
             </button>
           </div>
         </form>

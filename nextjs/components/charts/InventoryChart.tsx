@@ -18,7 +18,7 @@ const data = [
   { name: 'Nutrition', value: 298, color: '#eab308' },
 ];
 
-export function InventoryChart() {
+const InventoryChart = React.memo(function InventoryChart() {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mb-4">
@@ -62,6 +62,7 @@ export function InventoryChart() {
       </div>
     </div>
   );
-}
+});
 
+export { InventoryChart };
 export default InventoryChart;

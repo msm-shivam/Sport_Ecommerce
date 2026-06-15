@@ -9,10 +9,10 @@ import { SeverityLevel } from '../enums/severity-level.enum';
 @Index(['userId'])
 @Index(['createdAt'])
 export class SecurityEvent extends BaseEntity {
-  @Column({ type: 'enum', enum: SecurityEventType })
+  @Column({ name: 'event_type', type: 'enum', enum: SecurityEventType })
   eventType: SecurityEventType;
 
-  @Column({ type: 'enum', enum: SeverityLevel, default: SeverityLevel.LOW })
+  @Column({ name: 'severity', type: 'enum', enum: SeverityLevel, default: SeverityLevel.LOW })
   severity: SeverityLevel;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })

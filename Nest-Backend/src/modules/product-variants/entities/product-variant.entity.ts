@@ -46,10 +46,10 @@ export class ProductVariant {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   price: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'compare_at_price', type: 'decimal', precision: 12, scale: 2, nullable: true })
   compareAtPrice: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'cost_price', type: 'decimal', precision: 12, scale: 2, nullable: true })
   costPrice: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })

@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useTransition, use } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { INITIAL_SHIPMENTS, Shipment } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
+import * as Types from '@/services/types';
 
 export default function ShipmentsPage({
   searchParams: searchParamsPromise,
@@ -13,15 +16,21 @@ export default function ShipmentsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [shipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
+  const { data: shipmentsRes, isLoading } = usePaginatedQuery<Types.Shipment>(
+    'shipments',
+    '/admin/shipments',
+    { page, limit, search }
+  );
 
-  const filtered = shipments.filter((item) => {
-    const q = search.toLowerCase();
-    return item.orderNumber.toLowerCase().includes(q) || item.trackingNumber.toLowerCase().includes(q);
-  });
+  const shipments = shipmentsRes?.data?.items || [];
+  const totalItems = shipmentsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -36,6 +45,16 @@ export default function ShipmentsPage({
     startTransition(() => {
       updateUrl({ search: val, page: 1 });
     });
+  };
+
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    setIsSaving(true);
+    try {
+      await apiClient.patch(`/admin/shipments/${id}`, { status: newStatus });
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const columns: TableColumn[] = [
@@ -57,7 +76,7 @@ export default function ShipmentsPage({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white p-4 rounded-xl border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800">
         <SearchInput value={search} onChange={handleSearchChange} placeholder="Search order or tracking number..." />
       </div>
-      <AppDataTable data={filtered} columns={columns} totalItems={filtered.length} />
+      <AppDataTable data={shipments} columns={columns} totalItems={totalItems} loading={isLoading} />
     </div>
   );
 }

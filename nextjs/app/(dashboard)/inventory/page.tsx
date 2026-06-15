@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useState, useEffect, useTransition, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +12,8 @@ import AppSelect from '@/components/form/AppSelect';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
-import { INITIAL_PRODUCTS, INITIAL_SUPPLIERS, INITIAL_PURCHASE_ORDERS, Product, Supplier, PurchaseOrder } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { Product, Supplier, PurchaseOrder } from '@/services/types';
 import StatsCard from '@/components/shared/StatsCard';
 import { Plus, Warehouse, Truck, FileText, Package, Users, ShoppingCart, AlertTriangle } from 'lucide-react';
 
@@ -26,10 +27,26 @@ export default function InventoryPage({
   const [activeTab, setActiveTab] = useState<'stock' | 'suppliers' | 'orders'>('stock');
   const [, startTransition] = useTransition();
 
-  // Mock states
-  const [products] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
-  const [pos] = useState<PurchaseOrder[]>(INITIAL_PURCHASE_ORDERS);
+  const { data: inventoryRes } = usePaginatedQuery<Product>('inventory', '/admin/inventory-plus', { limit: 5, page: 1 });
+  const { data: suppliersRes } = usePaginatedQuery<Supplier>('suppliers', '/admin/suppliers', { limit: 5, page: 1 });
+  const { data: posRes } = usePaginatedQuery<PurchaseOrder>('purchase-orders', '/admin/purchase-orders', { limit: 5, page: 1 });
+
+  const apiProducts = inventoryRes?.data?.items || [];
+  const totalProductsStock = inventoryRes?.data?.total || 0;
+  const apiSuppliers = suppliersRes?.data?.items || [];
+  const totalSuppliers = suppliersRes?.data?.total || 0;
+  const apiPos = posRes?.data?.items || [];
+  const totalPos = posRes?.data?.total || 0;
+
+  const products = apiProducts;
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const pos = apiPos;
+
+  useEffect(() => {
+    if (apiSuppliers.length > 0) {
+      setSuppliers(apiSuppliers);
+    }
+  }, [apiSuppliers]);
 
   // Drawer configs
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -112,9 +129,9 @@ export default function InventoryPage({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatsCard title="Total Stock Items" value={products.length} icon={Package} />
+        <StatsCard title="Total Stock Items" value={totalProductsStock} icon={Package} />
         <StatsCard title="Active Suppliers" value={suppliers.filter(s => s.status === 'active').length} icon={Users} trend={{ value: 12.5, isPositive: true, label: 'vs last month' }} />
-        <StatsCard title="Purchase Orders" value={pos.length} icon={ShoppingCart} />
+        <StatsCard title="Purchase Orders" value={totalPos} icon={ShoppingCart} />
         <StatsCard title="Low Stock Items" value={products.filter(p => p.stock < 15 && p.stock > 0).length} icon={AlertTriangle} trend={{ value: 8, isPositive: false, label: 'need restock' }} />
       </div>
 
@@ -123,9 +140,9 @@ export default function InventoryPage({
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Inventory Summary</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Products</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{products.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Total Products</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalProductsStock}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Active Suppliers</span><span className="font-bold text-green-600">{suppliers.filter(s => s.status === 'active').length}</span></div>
-            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Purchase Orders</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{pos.length}</span></div>
+            <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Purchase Orders</span><span className="font-bold text-zinc-800 dark:text-zinc-200">{totalPos}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Out of Stock</span><span className="font-bold text-red-500">{products.filter(p => p.stock === 0).length}</span></div>
             <div className="flex items-center justify-between text-sm"><span className="text-zinc-500">Low Stock ({'<'}15)</span><span className="font-bold text-amber-500">{products.filter(p => p.stock < 15 && p.stock > 0).length}</span></div>
           </div>

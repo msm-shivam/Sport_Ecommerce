@@ -19,7 +19,7 @@ export class StockAlert {
   @Column({ name: 'current_quantity', type: 'int' })
   currentQuantity: number;
 
-  @Column({ length: 50, default: 'LOW_STOCK' })
+  @Column({ name: 'alert_type', length: 50, default: 'LOW_STOCK' })
   alertType: string;
 
   @Column({ name: 'is_resolved', default: false })

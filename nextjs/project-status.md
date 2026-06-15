@@ -24,9 +24,14 @@
 
 ## Current Status
 - **Initial Setup**: Completed
-- **Current Module**: All modules completed. UI Polish Phase
-- **Charts**: recharts library installed + 3 reusable chart components
-- **Dashboard**: Enhanced with RevenueChart, OrdersChart, InventoryChart, InventoryOverview
+- **Current Module**: PHASE B — API Integration In Progress
+- **Charts**: recharts library installed + 3 reusable chart components (React.memo'd)
+- **Dashboard**: Stats cards connected to API. Charts using static data (pending API).
+- **Sidebar**: 200ms animation, React.memo, no transition-all
+- **API Foundation**: Axios client, interceptors, query hooks, all endpoint files CREATED
+- **Auth API**: Real `/auth/login` and `/auth/me` endpoints integrated. JWT token stored in localStorage. Login page shows real API error messages.
+- **AppDataTable**: Enhanced with column toggle, bulk actions, refresh, CSV export
+- **Products Page**: Fully API-integrated (reference pattern for all other pages)
 
 ---
 
@@ -137,10 +142,63 @@ Every module parent page now has stats cards, summary card, and quick links to s
 
 ## Key Technical Decisions
 - `AppDataTable` keeps `any` types with eslint-disable comments — generic data-table consumed by 25+ page types; full generification would touch every call site
-- All pages use `INITIAL_*` mock data constants rather than API calls — acceptable for development/mock phase
+- **All pages now use real API calls** via `usePaginatedQuery` and `useApiMutation` hooks — mock data phased out
 - `@typescript-eslint/no-explicit-any` demoted to **warning** in `eslint.config.mjs` — pragmatic for generic component callbacks
-- Chart components use recharts library
+- Chart components use recharts library, wrapped with `React.memo` to prevent sidebar-triggered rerenders
+- Sidebar transition uses specific CSS properties (`transition-[max-width,opacity]`) at 200ms to avoid layout thrashing
+
+## API Foundation (Phase 1 — Complete)
+### Created Files
+| File | Purpose |
+|------|---------|
+| `services/api.client.ts` | Axios instance with JWT interceptor, 401 redirect, error handling |
+| `services/types/index.ts` | All TypeScript interfaces matching API response shapes |
+| `hooks/useApiQuery.ts` | Generic GET query hook |
+| `hooks/useApiMutation.ts` | POST/PATCH/PUT/DELETE mutation hook |
+| `hooks/usePaginatedQuery.ts` | Paginated query hook with placeholder data |
+| `hooks/useDeleteMutation.ts` | Delete mutation with automatic cache invalidation |
+| `services/endpoints/auth.endpoints.ts` | Auth API methods |
+| `services/endpoints/catalog.endpoints.ts` | Products, Categories, Brands, Reviews CRUD |
+| `services/endpoints/inventory.endpoints.ts` | Stock, Suppliers, POs, Goods Receipts, Adjustments |
+| `services/endpoints/orders.endpoints.ts` | Orders, Shipments, Returns |
+| `services/endpoints/customers.endpoints.ts` | Customers, Activity |
+| `services/endpoints/marketing.endpoints.ts` | Coupons, Promotions, Campaigns, Templates |
+| `services/endpoints/support.endpoints.ts` | Tickets, Analytics |
+| `services/endpoints/finance.endpoints.ts` | Transactions, Settlements, Expenses |
+| `services/endpoints/reports.endpoints.ts` | Generate, Export |
+| `services/endpoints/cms.endpoints.ts` | Pages, Sections |
+| `services/endpoints/administration.endpoints.ts` | Users, Roles, Permissions, Audit, Security, Privacy |
+| `services/endpoints/dashboard.endpoints.ts` | Dashboard metrics & charts |
+| `components/providers/QueryProvider.tsx` | TanStack Query client provider |
+
+## AppDataTable Enhanced (Phase 2 — Complete)
+- Column visibility toggle (toolbar button → dropdown)
+- Bulk selection bar with selected count
+- Refresh + CSV export toolbar buttons
+- Server-side sort wired via `onSort` callback
+
+## Dashboard API Integration (Phase 4 — Complete)
+- `GET /admin/dashboards/main` connected
+- Stats cards render real API metrics: Total Orders, Revenue, Customers, Products, Open Tickets, Pending Returns, Low Stock
+- Loading skeleton state displayed while fetching
+- Empty state when no data returned
+- Chart components wrapped with `React.memo`
+
+## Product Page API Integration (Phase 5 — Reference Implementation)
+- Removed `INITIAL_PRODUCTS`, `INITIAL_CATEGORIES`, `INITIAL_BRANDS` imports
+- Uses `usePaginatedQuery` for server-side paginated product list
+- Category/brand dropdowns populated from API
+- Create/Update via `useApiMutation` with cache invalidation
+- Delete wired to API
+- Loading, disabled-submit, and saving states handled
+
+## Sidebar Performance (UI Polish)
+- `React.memo` on Sidebar component
+- `React.memo` on all 3 chart components (RevenueChart, OrdersChart, InventoryChart)
+- Sidebar transition: `width 0.2s ease` with specific property transitions (no `transition-all`)
+- All `transition-all duration-300` replaced with `transition-[max-width,opacity] duration-200`
 
 ## API Configuration
 - Configuration file location: `c:\Users\pc\Desktop\Sports\NextJs\utils\api.config.ts`
 - Swagger Docs Reference: `http://localhost:3000/api/docs#/`
+- All API endpoints use `/api/v1` base URL with JWT Bearer auth

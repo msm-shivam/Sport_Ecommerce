@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class SecurityEventQueryDto {
   @ApiPropertyOptional()
@@ -29,9 +29,11 @@ export class SecurityEventQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   page?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   limit?: number;
 }

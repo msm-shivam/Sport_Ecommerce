@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import StatsCard from '@/components/shared/StatsCard';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_BRANDS, Product } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import type { Product } from '@/services/types';
 import { Package, Tags, Building2, Star } from 'lucide-react';
 
 export default function CatalogPage({
@@ -17,7 +18,15 @@ export default function CatalogPage({
   const resolvedSearchParams = use(searchParamsPromise);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
-  const [products] = useState<Product[]>(INITIAL_PRODUCTS);
+
+  const { data: productsRes } = usePaginatedQuery<Product>('products', '/admin/products', { limit: 5, page: 1 });
+  const { data: categoriesRes } = usePaginatedQuery('categories', '/admin/categories', { limit: 1 });
+  const { data: brandsRes } = usePaginatedQuery('brands', '/admin/brands', { limit: 1 });
+
+  const products = productsRes?.data?.items || [];
+  const totalProducts = productsRes?.data?.total || 0;
+  const totalCategories = categoriesRes?.data?.total || 0;
+  const totalBrands = brandsRes?.data?.total || 0;
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -34,9 +43,6 @@ export default function CatalogPage({
     });
   };
 
-  const totalProducts = products.length;
-  const totalCategories = INITIAL_CATEGORIES.length;
-  const totalBrands = INITIAL_BRANDS.length;
   const activeProducts = products.filter((p) => p.status === 'active').length;
   const outOfStock = products.filter((p) => p.status === 'out of stock').length;
   const avgRating = 4.2;

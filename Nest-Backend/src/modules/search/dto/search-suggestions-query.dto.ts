@@ -1,4 +1,4 @@
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsInt, IsString, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SearchSuggestionsQueryDto {
@@ -9,5 +9,6 @@ export class SearchSuggestionsQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   limit?: number;
 }

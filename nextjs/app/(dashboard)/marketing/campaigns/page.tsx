@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { INITIAL_CAMPAIGNS, Campaign } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import * as Types from '@/services/types';
 
 export default function CampaignsPage({
   searchParams: searchParamsPromise,
@@ -13,15 +14,19 @@ export default function CampaignsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const resolvedSearchParams = use(searchParamsPromise);
+  const page = parseInt((resolvedSearchParams.page as string) || '1', 10);
+  const limit = parseInt((resolvedSearchParams.limit as string) || '10', 10);
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
 
-  const [campaigns] = useState<Campaign[]>(INITIAL_CAMPAIGNS);
+  const { data: campaignsRes, isLoading } = usePaginatedQuery<Types.Campaign>(
+    'campaigns',
+    '/admin/campaigns',
+    { page, limit, search }
+  );
 
-  const filtered = campaigns.filter((item) => {
-    const q = search.toLowerCase();
-    return item.name.toLowerCase().includes(q) || item.channel.toLowerCase().includes(q);
-  });
+  const campaigns = campaignsRes?.data?.items || [];
+  const totalItems = campaignsRes?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -35,6 +40,12 @@ export default function CampaignsPage({
   const handleSearchChange = (val: string) => {
     startTransition(() => {
       updateUrl({ search: val, page: 1 });
+    });
+  };
+
+  const handleSort = (key: string, dir: 'asc' | 'desc') => {
+    startTransition(() => {
+      updateUrl({ sortBy: key, sortOrder: dir });
     });
   };
 
@@ -54,9 +65,11 @@ export default function CampaignsPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={campaigns}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={totalItems}
+        loading={isLoading}
+        onSort={handleSort}
       />
     </div>
   );

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useTransition, use } from 'react';
+import React, { useTransition, use } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import SearchInput from '@/components/shared/SearchInput';
-import { INITIAL_CUSTOMER_ACTIVITIES, CustomerActivity } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import * as Types from '@/services/types';
 
 export default function CustomerActivityPage({
   searchParams: searchParamsPromise,
@@ -15,12 +16,9 @@ export default function CustomerActivityPage({
   const search = (resolvedSearchParams.search as string) || '';
   const [, startTransition] = useTransition();
 
-  const [activities] = useState<CustomerActivity[]>(INITIAL_CUSTOMER_ACTIVITIES);
-
-  const filtered = activities.filter((item) => {
-    const q = search.toLowerCase();
-    return item.customerName.toLowerCase().includes(q) || item.details.toLowerCase().includes(q);
-  });
+  const { data } = usePaginatedQuery<Types.CustomerActivity>('customer-activity', '/admin/users/activity', { search, limit: 50 });
+  const activities = data?.data?.items || [];
+  const total = data?.data?.total || 0;
 
   const updateUrl = (newParams: Record<string, string | number | null>) => {
     const url = new URL(window.location.href);
@@ -53,9 +51,9 @@ export default function CustomerActivityPage({
       </div>
 
       <AppDataTable
-        data={filtered}
+        data={activities}
         columns={columns}
-        totalItems={filtered.length}
+        totalItems={total}
       />
     </div>
   );

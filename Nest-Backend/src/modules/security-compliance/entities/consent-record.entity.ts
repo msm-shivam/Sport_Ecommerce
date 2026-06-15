@@ -10,7 +10,7 @@ export class ConsentRecord extends BaseEntity {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'enum', enum: ConsentType })
+  @Column({ name: 'consent_type', type: 'enum', enum: ConsentType })
   consentType: ConsentType;
 
   @Column({ type: 'boolean', default: false })

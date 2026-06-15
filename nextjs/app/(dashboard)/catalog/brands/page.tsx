@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/layout/PageHeader';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import AppDrawer from '@/components/modal/AppDrawer';
@@ -15,7 +16,8 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import AppRowActions from '@/components/table/AppRowActions';
 import { Brand } from '@/types/catalog';
 import { Plus } from 'lucide-react';
-import { INITIAL_BRANDS } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
 
 const brandSchema = z.object({
   name: z.string().min(1, 'Brand name is required'),
@@ -32,11 +34,20 @@ function BrandsPageContent() {
   const search = searchParams.get('search') ?? '';
   const status = searchParams.get('status') ?? '';
 
-  const [brands, setBrands] = useState<Brand[]>(INITIAL_BRANDS);
-
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [, startTransition] = useTransition();
+
+  const { data: brandsRes, isLoading } = usePaginatedQuery<Brand>(
+    'brands',
+    '/admin/brands',
+    { page, limit, search, status }
+  );
+
+  const brands = brandsRes?.data?.items || [];
+  const totalBrands = brandsRes?.data?.total || 0;
 
   const {
     register,
@@ -77,31 +88,25 @@ function BrandsPageContent() {
     setDrawerOpen(true);
   };
 
-  const handleSave = (values: BrandFormValues) => {
-    if (editingBrand) {
-      setBrands(brands.map(b => (b.id === editingBrand.id ? { ...b, ...values } : b)));
-    } else {
-      setBrands([
-        { id: crypto.randomUUID(), ...values },
-        ...brands,
-      ]);
+  const handleSave = async (values: BrandFormValues) => {
+    setIsSaving(true);
+    try {
+      if (editingBrand) {
+        await apiClient.patch(`/admin/brands/${editingBrand.id}`, values);
+      } else {
+        await apiClient.post('/admin/brands', values);
+      }
+      queryClient.invalidateQueries({ queryKey: ['brands'] });
+      setDrawerOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setDrawerOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setBrands(brands.filter(b => b.id !== id));
+  const handleDelete = async (id: string) => {
+    await apiClient.delete(`/admin/brands/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['brands'] });
   };
-
-  const filteredBrands = brands.filter(item => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.code.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || item.status === status;
-    return matchesSearch && matchesStatus;
-  });
-
-  const paginatedBrands = filteredBrands.slice((page - 1) * limit, page * limit);
 
   const columns: TableColumn[] = [
     { key: 'name', label: 'Brand Name', sortable: true },
@@ -140,9 +145,10 @@ function BrandsPageContent() {
       </div>
 
       <AppDataTable
-        data={paginatedBrands}
+        data={brands}
         columns={columns}
-        totalItems={filteredBrands.length}
+        totalItems={totalBrands}
+        loading={isLoading}
         rowActions={(row: any) => (
           <AppRowActions
             onEdit={() => handleOpenEditDrawer(row)}
@@ -171,9 +177,10 @@ function BrandsPageContent() {
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors"
+              disabled={isSaving}
+              className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors disabled:opacity-50"
             >
-              Save Brand
+              {isSaving ? 'Saving...' : 'Save Brand'}
             </button>
           </div>
         </form>

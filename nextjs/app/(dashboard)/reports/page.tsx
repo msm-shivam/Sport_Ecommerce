@@ -3,22 +3,36 @@
 import React, { useState } from 'react';
 import PageHeader from '@/components/layout/PageHeader';
 import { Download, FileBarChart, RefreshCw } from 'lucide-react';
+import apiClient from '@/services/api.client';
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState('sales');
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [reportUrl, setReportUrl] = useState('');
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGenerating(true);
-    setTimeout(() => {
-      setGenerating(false);
+    setGenerated(false);
+    try {
+      const { data } = await apiClient.get('/admin/reports', { params: { type: reportType } });
+      if (data?.data?.url) {
+        setReportUrl(data.data.url);
+      }
       setGenerated(true);
-    }, 1500);
+    } catch {
+      setGenerated(true);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleExport = () => {
-    alert(`Exporting ${reportType} report data to CSV...`);
+    if (reportUrl) {
+      window.open(reportUrl, '_blank');
+    } else {
+      alert('No report available for export. Please generate a report first.');
+    }
   };
 
   return (

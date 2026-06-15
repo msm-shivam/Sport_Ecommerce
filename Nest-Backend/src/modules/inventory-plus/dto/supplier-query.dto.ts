@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SupplierQueryDto {
@@ -14,9 +14,11 @@ export class SupplierQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   page?: number = 1;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
   limit?: number = 20;
 }

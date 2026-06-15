@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { use } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Package } from 'lucide-react';
 import AppDataTable, { TableColumn } from '@/components/table/AppDataTable';
 import AppDrawer from '@/components/modal/AppDrawer';
@@ -18,7 +19,8 @@ import AppRowActions from '@/components/table/AppRowActions';
 import PageHeader from '@/components/layout/PageHeader';
 import SearchInput from '@/components/shared/SearchInput';
 import { useRouter } from 'next/navigation';
-import { INITIAL_CATEGORIES } from '@/services/mockData';
+import { usePaginatedQuery } from '@/hooks/usePaginatedQuery';
+import apiClient from '@/services/api.client';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -40,10 +42,20 @@ export default function CategoriesPage({
   const search = (resolvedSearchParams.search as string) || '';
   const status = (resolvedSearchParams.status as string) || '';
 
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [, startTransition] = useTransition();
+
+  const { data: categoriesRes, isLoading } = usePaginatedQuery<Category>(
+    'categories',
+    '/admin/categories',
+    { page, limit, search, status }
+  );
+
+  const categories = categoriesRes?.data?.items || [];
+  const totalCategories = categoriesRes?.data?.total || 0;
 
   const {
     register,
@@ -54,16 +66,6 @@ export default function CategoriesPage({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', slug: '', description: '', status: 'active' },
   });
-
-  const filteredCategories = categories.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.slug.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || item.status === status;
-    return matchesSearch && matchesStatus;
-  });
-
-  const paginatedCategories = filteredCategories.slice((page - 1) * limit, page * limit);
 
   const router = useRouter();
 
@@ -105,26 +107,24 @@ const updateUrl = (newParams: Record<string, string | number | null>) => {
     setDrawerOpen(true);
   };
 
-  const handleSave = (values: CategoryFormValues) => {
-    if (editingCategory) {
-      setCategories(
-        categories.map((c) => (c.id === editingCategory.id ? { ...c, ...values, description: values.description || '' } : c))
-      );
-    } else {
-      setCategories([
-        {
-          id: crypto.randomUUID(),
-          ...values,
-          description: values.description || '',
-        },
-        ...categories,
-      ]);
+  const handleSave = async (values: CategoryFormValues) => {
+    setIsSaving(true);
+    try {
+      if (editingCategory) {
+        await apiClient.patch(`/admin/categories/${editingCategory.id}`, values);
+      } else {
+        await apiClient.post('/admin/categories', values);
+      }
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setDrawerOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setDrawerOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setCategories(categories.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    await apiClient.delete(`/admin/categories/${id}`);
+    queryClient.invalidateQueries({ queryKey: ['categories'] });
   };
 
   const columns: TableColumn[] = [
@@ -166,9 +166,10 @@ const updateUrl = (newParams: Record<string, string | number | null>) => {
         </div>
 
         <AppDataTable
-          data={paginatedCategories}
+          data={categories}
           columns={columns}
-          totalItems={filteredCategories.length}
+          totalItems={totalCategories}
+          loading={isLoading}
           rowActions={(row: any) => (
             <AppRowActions
               onEdit={() => handleOpenEditDrawer(row)}
@@ -203,9 +204,10 @@ const updateUrl = (newParams: Record<string, string | number | null>) => {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors"
+                disabled={isSaving}
+                className="rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-orange-500 transition-colors disabled:opacity-50"
               >
-                Save Category
+                {isSaving ? 'Saving...' : 'Save Category'}
               </button>
             </div>
           </form>
