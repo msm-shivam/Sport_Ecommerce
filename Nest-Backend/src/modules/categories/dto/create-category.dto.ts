@@ -29,19 +29,16 @@ export class CreateCategoryDto {
   })
   slug?: string;
 
-
   @IsOptional()
   @ApiPropertyOptional({
-  type: 'string',
-  format: 'binary',
-})
-image?: any;
+    type: 'string',
+    format: 'binary',
+  })
+  image?: any;
 
   @ApiPropertyOptional({ example: 'Footwear for all sports' })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
-
-  
 }

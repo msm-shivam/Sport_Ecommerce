@@ -46,7 +46,7 @@ import { ImagesModule } from './modules/images';
 @Module({
   imports: [
     ConfigModule,
-    
+
     DatabaseModule,
     AuthModule,
     UsersModule,
@@ -84,7 +84,7 @@ import { ImagesModule } from './modules/images';
     SecurityComplianceModule,
     CatalogModule,
     SystemSettingsCmsModule,
-    ImagesModule
+    ImagesModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

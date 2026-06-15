@@ -24,7 +24,7 @@ export class BrandsService {
 
   async create(
     dto: CreateBrandDto,
-    image?: Express.Multer.File
+    image?: Express.Multer.File,
   ): Promise<{ message: string; data: BrandResponseDto }> {
     const slug = dto.slug ?? toSlug(dto.name);
     await this.ensureSlugUnique(slug);
@@ -34,7 +34,7 @@ export class BrandsService {
       slug,
       logo: image ? `/uploads/brands/${image.filename}` : null,
       description: dto.description ?? null,
-      isActive:  true,
+      isActive: true,
     });
 
     const saved = await this.brandRepo.save(brand);
@@ -75,7 +75,7 @@ export class BrandsService {
   async update(
     id: string,
     dto: UpdateBrandDto,
-    image?: Express.Multer.File
+    image?: Express.Multer.File,
   ): Promise<{ message: string; data: BrandResponseDto }> {
     const brand = await this.findByIdOrFail(id);
 
@@ -91,12 +91,12 @@ export class BrandsService {
     }
 
     if (dto.name !== undefined) brand.name = dto.name;
-    
+
     if (dto.description !== undefined) brand.description = dto.description;
     if (dto.isActive !== undefined) brand.isActive = dto.isActive;
-  if (image?.filename) {
-  brand.logo = `/uploads/brands/${image.filename}`;
-}
+    if (image?.filename) {
+      brand.logo = `/uploads/brands/${image.filename}`;
+    }
     const saved = await this.brandRepo.save(brand);
     return {
       message: 'Brand updated successfully.',

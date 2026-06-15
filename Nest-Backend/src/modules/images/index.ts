@@ -10,4 +10,4 @@ import { join } from 'path';
     }),
   ],
 })
-export class ImagesModule { }
+export class ImagesModule {}

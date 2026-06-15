@@ -38,14 +38,17 @@ export class BrandQueryDto {
 
   @ApiPropertyOptional({ description: 'Filter by status', example: 'active' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value), { toClassOnly: true })
+  @Transform(({ value }) => (value === '' ? undefined : value), {
+    toClassOnly: true,
+  })
   @IsString()
   status?: string;
 
   @ApiPropertyOptional({ description: 'Filter by code', example: 'BR001' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value), { toClassOnly: true })
+  @Transform(({ value }) => (value === '' ? undefined : value), {
+    toClassOnly: true,
+  })
   @IsString()
   code?: string;
-
 }

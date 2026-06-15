@@ -39,7 +39,9 @@ export class CategoryQueryDto {
   // New optional status filter; empty string is treated as undefined
   @ApiPropertyOptional({ description: 'Filter by status', example: 'active' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value), { toClassOnly: true })
+  @Transform(({ value }) => (value === '' ? undefined : value), {
+    toClassOnly: true,
+  })
   @IsString()
   status?: string;
 }

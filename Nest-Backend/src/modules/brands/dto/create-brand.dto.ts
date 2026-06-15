@@ -27,19 +27,16 @@ export class CreateBrandDto {
   })
   slug?: string;
 
- @IsOptional()
+  @IsOptional()
   @ApiPropertyOptional({
-  type: 'string',
-  format: 'binary',
-})
-image?: any;
+    type: 'string',
+    format: 'binary',
+  })
+  image?: any;
 
   @ApiPropertyOptional({ example: 'Just Do It' })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
-
-  
-  
 }

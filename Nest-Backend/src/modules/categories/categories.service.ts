@@ -32,9 +32,9 @@ export class CategoriesService {
     const category = this.categoryRepo.create({
       name: dto.name,
       slug,
-      image:  image?.filename?`/uploads/categories/${image.filename}` : null,
+      image: image?.filename ? `/uploads/categories/${image.filename}` : null,
       description: dto.description ?? null,
-      sortOrder:  0,
+      sortOrder: 0,
       isActive: true,
     });
 
@@ -73,11 +73,11 @@ export class CategoriesService {
     return this.toResponse(category);
   }
 
- async update(
-  id: string,
-  dto: UpdateCategoryDto,
-  image?: Express.Multer.File,
-): Promise<{ message: string; data: CategoryResponseDto }> {
+  async update(
+    id: string,
+    dto: UpdateCategoryDto,
+    image?: Express.Multer.File,
+  ): Promise<{ message: string; data: CategoryResponseDto }> {
     const category = await this.findByIdOrFail(id);
 
     if (dto.slug && dto.slug !== category.slug) {
@@ -92,9 +92,9 @@ export class CategoriesService {
     }
 
     if (dto.name !== undefined) category.name = dto.name;
-  if (image) {
-  category.image = `/uploads/categories/${image.filename}`;
-}
+    if (image) {
+      category.image = `/uploads/categories/${image.filename}`;
+    }
     if (dto.description !== undefined) category.description = dto.description;
     if (dto.isActive !== undefined) category.isActive = dto.isActive;
 

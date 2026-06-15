@@ -43,23 +43,30 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  @UseInterceptors(  FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads/categories',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/categories',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),)
+  )
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ description: 'Create a category with optional image upload', type: CreateCategoryDto })
+  @ApiBody({
+    description: 'Create a category with optional image upload',
+    type: CreateCategoryDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   @Permissions(DefaultPermissions.CATEGORY_CREATE)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({ status: 201, description: 'Category created.' })
-  async create(@Body() dto: CreateCategoryDto, @UploadedFile() image: Express.Multer.File) {
-;
-    return this.categoriesService.create(dto,image);
+  async create(
+    @Body() dto: CreateCategoryDto,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.categoriesService.create(dto, image);
   }
 
   @Get()
@@ -86,24 +93,24 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-@UseInterceptors(
-  FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads/categories',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/categories',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),
-)
-@ApiConsumes('multipart/form-data')
-async update(
-  @Param('id', ParseUUIDPipe) id: string,
-  @Body() dto: UpdateCategoryDto,
-  @UploadedFile() image?: Express.Multer.File,
-) {
-  return this.categoriesService.update(id, dto, image);
-}
+  )
+  @ApiConsumes('multipart/form-data')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCategoryDto,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    return this.categoriesService.update(id, dto, image);
+  }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
