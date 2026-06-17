@@ -31,13 +31,13 @@ export class ProductVariantQueryDto {
   })
   @IsOptional()
   @IsUUID()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   productId?: string;
 
   @ApiPropertyOptional({ enum: VariantStatus, example: VariantStatus.ACTIVE })
   @IsOptional()
   @IsEnum(VariantStatus)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   status?: VariantStatus;
 
   @ApiPropertyOptional({
@@ -46,7 +46,7 @@ export class ProductVariantQueryDto {
   })
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional({

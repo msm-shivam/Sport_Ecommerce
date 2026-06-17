@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { DeliveryChargeType } from '../entities/delivery-charge.entity';
 
 export class CreateDeliveryChargeDto {
@@ -19,7 +28,10 @@ export class CreateDeliveryChargeDto {
   @Min(0)
   chargeAmount: number;
 
-  @ApiProperty({ enum: DeliveryChargeType, example: DeliveryChargeType.FIXED_DELIVERY })
+  @ApiProperty({
+    enum: DeliveryChargeType,
+    example: DeliveryChargeType.FIXED_DELIVERY,
+  })
   @IsEnum(DeliveryChargeType)
   @IsNotEmpty()
   chargeType: DeliveryChargeType;

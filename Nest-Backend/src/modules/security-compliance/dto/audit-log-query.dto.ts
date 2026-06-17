@@ -6,31 +6,31 @@ export class AuditLogQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   action?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   entityType?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   userId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateFrom?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateTo?: string;
 
   @ApiPropertyOptional()

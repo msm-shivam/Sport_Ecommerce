@@ -6,13 +6,13 @@ export class SupplierQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   @Type(() => Boolean)
   isActive?: boolean;
 

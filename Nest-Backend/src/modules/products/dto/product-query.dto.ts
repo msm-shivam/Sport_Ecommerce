@@ -32,13 +32,13 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional({ enum: ProductStatus, example: ProductStatus.ACTIVE })
   @IsOptional()
   @IsEnum(ProductStatus)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   status?: ProductStatus;
 
   @ApiPropertyOptional({
@@ -47,7 +47,7 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsUUID()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   brandId?: string;
 
   @ApiPropertyOptional({
@@ -56,7 +56,7 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsUUID()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   categoryId?: string;
 
   @ApiPropertyOptional({
@@ -65,7 +65,7 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsUUID()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   subCategoryId?: string;
 
   @ApiPropertyOptional({
@@ -74,14 +74,14 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   @Type(() => Boolean)
   isFeatured?: boolean;
 
   @ApiPropertyOptional({ example: true, description: 'Filter active products' })
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   @Type(() => Boolean)
   isActive?: boolean;
 

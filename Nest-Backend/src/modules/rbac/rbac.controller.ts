@@ -135,8 +135,13 @@ export class RbacController {
   @Public()
   @Get('permissions/code')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List all permissions defined in code (DefaultPermissions enum)' })
-  @ApiResponse({ status: 200, description: 'All code-defined permissions with slugs, names, and modules.' })
+  @ApiOperation({
+    summary: 'List all permissions defined in code (DefaultPermissions enum)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All code-defined permissions with slugs, names, and modules.',
+  })
   getAllCodePermissions() {
     return this.rbacService.getAllCodePermissions();
   }

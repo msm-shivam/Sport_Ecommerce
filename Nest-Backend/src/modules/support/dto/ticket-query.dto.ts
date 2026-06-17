@@ -16,49 +16,49 @@ export class TicketQueryDto {
   @ApiPropertyOptional({ enum: TicketStatus })
   @IsOptional()
   @IsEnum(TicketStatus)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   status?: TicketStatus;
 
   @ApiPropertyOptional({ enum: TicketCategory })
   @IsOptional()
   @IsEnum(TicketCategory)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   category?: TicketCategory;
 
   @ApiPropertyOptional({ enum: TicketPriority })
   @IsOptional()
   @IsEnum(TicketPriority)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   priority?: TicketPriority;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   assignedTo?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   customer?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateFrom?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateTo?: string;
 
   @ApiPropertyOptional()

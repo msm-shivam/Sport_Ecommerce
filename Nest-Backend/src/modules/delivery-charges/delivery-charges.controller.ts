@@ -34,7 +34,10 @@ export class DeliveryChargesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @Permissions(DefaultPermissions.DELIVERY_CHARGE_MANAGE)
-  async create(@Body() dto: CreateDeliveryChargeDto, @CurrentUser() admin: JwtPayload) {
+  async create(
+    @Body() dto: CreateDeliveryChargeDto,
+    @CurrentUser() admin: JwtPayload,
+  ) {
     return this.service.create(dto, admin.sub);
   }
 
@@ -55,7 +58,11 @@ export class DeliveryChargesController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @Permissions(DefaultPermissions.DELIVERY_CHARGE_MANAGE)
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateDeliveryChargeDto, @CurrentUser() admin: JwtPayload) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateDeliveryChargeDto,
+    @CurrentUser() admin: JwtPayload,
+  ) {
     return this.service.update(id, dto, admin.sub);
   }
 
@@ -69,7 +76,10 @@ export class DeliveryChargesController {
   @Patch(':id/toggle')
   @HttpCode(HttpStatus.OK)
   @Permissions(DefaultPermissions.DELIVERY_CHARGE_MANAGE)
-  async toggleActive(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() admin: JwtPayload) {
+  async toggleActive(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() admin: JwtPayload,
+  ) {
     return this.service.toggleActive(id, admin.sub);
   }
 

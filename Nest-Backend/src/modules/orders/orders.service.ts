@@ -122,10 +122,18 @@ export class OrdersService {
       settings,
     );
     const activeCharges = await this.deliveryChargesService.getActiveCharges();
-    const { deliveryCharge, codCharge, handlingCharge } = this.deliveryChargesService.calculateCharges(subtotal, activeCharges);
+    const { deliveryCharge, codCharge, handlingCharge } =
+      this.deliveryChargesService.calculateCharges(subtotal, activeCharges);
     const taxAmount = 0;
     const discountAmount = 0;
-    const totalAmount = subtotal + shippingAmount + deliveryCharge + codCharge + handlingCharge + taxAmount - discountAmount;
+    const totalAmount =
+      subtotal +
+      shippingAmount +
+      deliveryCharge +
+      codCharge +
+      handlingCharge +
+      taxAmount -
+      discountAmount;
 
     const orderNumber = await this.generateOrderNumber();
 

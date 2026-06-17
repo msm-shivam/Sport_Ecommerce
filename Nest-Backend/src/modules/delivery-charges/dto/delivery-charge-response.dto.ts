@@ -8,7 +8,9 @@ export class DeliveryChargeResponseDto {
   @Expose() @ApiProperty() name: string;
   @Expose() @ApiPropertyOptional() description: string | null;
   @Expose() @ApiProperty() chargeAmount: number;
-  @Expose() @ApiProperty({ enum: DeliveryChargeType }) chargeType: DeliveryChargeType;
+  @Expose()
+  @ApiProperty({ enum: DeliveryChargeType })
+  chargeType: DeliveryChargeType;
   @Expose() @ApiProperty() isActive: boolean;
   @Expose() @ApiPropertyOptional() createdBy: string | null;
   @Expose() @ApiPropertyOptional() updatedBy: string | null;

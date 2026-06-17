@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -28,7 +29,7 @@ export class StripeService {
     metadata?: Record<string, string>,
   ) {
     const client = this.getClient();
-    return client.paymentIntents.create({
+    return await client.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency,
       metadata,
@@ -37,7 +38,7 @@ export class StripeService {
 
   async retrievePaymentIntent(paymentIntentId: string) {
     const client = this.getClient();
-    return client.paymentIntents.retrieve(paymentIntentId);
+    return await client.paymentIntents.retrieve(paymentIntentId);
   }
 
   async createRefund(
@@ -51,7 +52,7 @@ export class StripeService {
     };
     if (amount) params.amount = Math.round(amount * 100);
     if (reason) params.reason = reason;
-    return client.refunds.create(params);
+    return await client.refunds.create(params);
   }
 
   constructWebhookEvent(payload: Buffer, signature: string) {

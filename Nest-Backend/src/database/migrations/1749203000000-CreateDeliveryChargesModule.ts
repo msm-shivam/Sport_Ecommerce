@@ -5,7 +5,9 @@ export class CreateDeliveryChargesModule1749203000000 implements MigrationInterf
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create delivery_charge_type enum
-    await queryRunner.query(`CREATE TYPE "public"."delivery_charges_charge_type_enum" AS ENUM('FIXED_DELIVERY', 'FREE_SHIPPING_THRESHOLD', 'COD_CHARGE', 'HANDLING_CHARGE')`);
+    await queryRunner.query(
+      `CREATE TYPE "public"."delivery_charges_charge_type_enum" AS ENUM('FIXED_DELIVERY', 'FREE_SHIPPING_THRESHOLD', 'COD_CHARGE', 'HANDLING_CHARGE')`,
+    );
 
     // Create delivery_charges table
     await queryRunner.query(`
@@ -23,8 +25,12 @@ export class CreateDeliveryChargesModule1749203000000 implements MigrationInterf
         CONSTRAINT "PK_delivery_charges" PRIMARY KEY ("id")
       )
     `);
-    await queryRunner.query(`CREATE INDEX "IDX_delivery_charges_charge_type" ON "delivery_charges" ("charge_type")`);
-    await queryRunner.query(`CREATE INDEX "IDX_delivery_charges_is_active" ON "delivery_charges" ("is_active")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_delivery_charges_charge_type" ON "delivery_charges" ("charge_type")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_delivery_charges_is_active" ON "delivery_charges" ("is_active")`,
+    );
 
     // Create delivery_charge_audits table
     await queryRunner.query(`
@@ -40,22 +46,36 @@ export class CreateDeliveryChargesModule1749203000000 implements MigrationInterf
         CONSTRAINT "PK_delivery_charge_audits" PRIMARY KEY ("id")
       )
     `);
-    await queryRunner.query(`ALTER TABLE "delivery_charge_audits" ADD CONSTRAINT "FK_delivery_charge_audits_charge" FOREIGN KEY ("delivery_charge_id") REFERENCES "delivery_charges"("id") ON DELETE CASCADE`);
+    await queryRunner.query(
+      `ALTER TABLE "delivery_charge_audits" ADD CONSTRAINT "FK_delivery_charge_audits_charge" FOREIGN KEY ("delivery_charge_id") REFERENCES "delivery_charges"("id") ON DELETE CASCADE`,
+    );
 
     // Add charge columns to orders table
-    await queryRunner.query(`ALTER TABLE "orders" ADD "delivery_charge" numeric(12,2) NOT NULL DEFAULT '0'`);
-    await queryRunner.query(`ALTER TABLE "orders" ADD "cod_charge" numeric(12,2) NOT NULL DEFAULT '0'`);
-    await queryRunner.query(`ALTER TABLE "orders" ADD "handling_charge" numeric(12,2) NOT NULL DEFAULT '0'`);
+    await queryRunner.query(
+      `ALTER TABLE "orders" ADD "delivery_charge" numeric(12,2) NOT NULL DEFAULT '0'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "orders" ADD "cod_charge" numeric(12,2) NOT NULL DEFAULT '0'`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "orders" ADD "handling_charge" numeric(12,2) NOT NULL DEFAULT '0'`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Remove charge columns from orders
-    await queryRunner.query(`ALTER TABLE "orders" DROP COLUMN "handling_charge"`);
+    await queryRunner.query(
+      `ALTER TABLE "orders" DROP COLUMN "handling_charge"`,
+    );
     await queryRunner.query(`ALTER TABLE "orders" DROP COLUMN "cod_charge"`);
-    await queryRunner.query(`ALTER TABLE "orders" DROP COLUMN "delivery_charge"`);
+    await queryRunner.query(
+      `ALTER TABLE "orders" DROP COLUMN "delivery_charge"`,
+    );
 
     // Drop delivery_charge_audits
-    await queryRunner.query(`ALTER TABLE "delivery_charge_audits" DROP CONSTRAINT "FK_delivery_charge_audits_charge"`);
+    await queryRunner.query(
+      `ALTER TABLE "delivery_charge_audits" DROP CONSTRAINT "FK_delivery_charge_audits_charge"`,
+    );
     await queryRunner.query(`DROP TABLE "delivery_charge_audits"`);
 
     // Drop delivery_charges
@@ -64,6 +84,8 @@ export class CreateDeliveryChargesModule1749203000000 implements MigrationInterf
     await queryRunner.query(`DROP TABLE "delivery_charges"`);
 
     // Drop enum
-    await queryRunner.query(`DROP TYPE "public"."delivery_charges_charge_type_enum"`);
+    await queryRunner.query(
+      `DROP TYPE "public"."delivery_charges_charge_type_enum"`,
+    );
   }
 }

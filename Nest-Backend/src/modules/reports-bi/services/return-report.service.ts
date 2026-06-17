@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
@@ -22,7 +23,7 @@ export class ReturnReportService {
 
     const summary = await qb.getRawOne();
 
-    const byReason = await this.dataSource
+    const byReason = this.dataSource
       .createQueryBuilder()
       .select([
         'r.reason as "reason"',

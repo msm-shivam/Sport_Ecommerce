@@ -20,6 +20,10 @@ export class DeliveryChargeAudit extends BaseEntity {
   @Column({ name: 'changed_by', type: 'uuid', nullable: true })
   changedBy: string | null;
 
-  @Column({ name: 'changed_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'changed_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   changedAt: Date;
 }

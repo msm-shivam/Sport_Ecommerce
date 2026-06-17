@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -302,11 +304,10 @@ export class PaymentsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
-
     const where: Record<string, unknown> = {};
     if (query.status) where.status = query.status;
 
-    const [data, total] = await this.paymentRepo.findAndCount({
+    const [data] = await this.paymentRepo.findAndCount({
       where,
       relations: { refunds: true },
       skip,
@@ -316,6 +317,7 @@ export class PaymentsService {
 
     const filtered = data.filter((p) => p.orderId);
     const orderIds = filtered.map((p) => p.orderId);
+
     if (orderIds.length === 0) {
       return {
         data: [],
@@ -445,6 +447,12 @@ export class PaymentsService {
           reason: 'Webhook refund',
         });
       }
-    } catch {}
+    } catch (error) {
+      Logger.error(
+        'Failed to send payment notification:',
+        error,
+        'PaymentsService',
+      );
+    }
   }
 }

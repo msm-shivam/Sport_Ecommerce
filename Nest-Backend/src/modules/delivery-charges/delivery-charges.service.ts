@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { DeliveryCharge, DeliveryChargeType } from './entities/delivery-charge.entity';
+import {
+  DeliveryCharge,
+  DeliveryChargeType,
+} from './entities/delivery-charge.entity';
 import { DeliveryChargeAudit } from './entities/delivery-charge-audit.entity';
 import { CreateDeliveryChargeDto } from './dto/create-delivery-charge.dto';
 import { UpdateDeliveryChargeDto } from './dto/update-delivery-charge.dto';
@@ -21,9 +28,13 @@ export class DeliveryChargesService {
   ) {}
 
   async create(dto: CreateDeliveryChargeDto, adminId: string) {
-    const existing = await this.repo.findOne({ where: { chargeType: dto.chargeType, isActive: true } });
+    const existing = await this.repo.findOne({
+      where: { chargeType: dto.chargeType, isActive: true },
+    });
     if (dto.chargeType !== DeliveryChargeType.FIXED_DELIVERY && existing) {
-      throw new BadRequestException(`An active ${dto.chargeType} rule already exists. Only one per type allowed.`);
+      throw new BadRequestException(
+        `An active ${dto.chargeType} rule already exists. Only one per type allowed.`,
+      );
     }
 
     const charge = this.repo.create({
@@ -40,11 +51,19 @@ export class DeliveryChargesService {
     await this.auditRepo.save({
       deliveryChargeId: saved.id,
       oldValue: null,
-      newValue: { name: saved.name, chargeAmount: Number(saved.chargeAmount), chargeType: saved.chargeType, isActive: saved.isActive },
+      newValue: {
+        name: saved.name,
+        chargeAmount: Number(saved.chargeAmount),
+        chargeType: saved.chargeType,
+        isActive: saved.isActive,
+      },
       changedBy: adminId,
     });
 
-    return { message: 'Delivery charge created successfully.', data: this.toResponse(saved) };
+    return {
+      message: 'Delivery charge created successfully.',
+      data: this.toResponse(saved),
+    };
   }
 
   async findAll(query: DeliveryChargeQueryDto) {
@@ -62,7 +81,12 @@ export class DeliveryChargesService {
       take: limit,
     });
 
-    return paginate(items.map(i => this.toResponse(i)), total, page, limit);
+    return paginate(
+      items.map((i) => this.toResponse(i)),
+      total,
+      page,
+      limit,
+    );
   }
 
   async findOne(id: string) {
@@ -75,12 +99,21 @@ export class DeliveryChargesService {
     const charge = await this.repo.findOne({ where: { id } });
     if (!charge) throw new NotFoundException('Delivery charge not found.');
 
-    const oldValue = { name: charge.name, chargeAmount: Number(charge.chargeAmount), chargeType: charge.chargeType, isActive: charge.isActive };
+    const oldValue = {
+      name: charge.name,
+      chargeAmount: Number(charge.chargeAmount),
+      chargeType: charge.chargeType,
+      isActive: charge.isActive,
+    };
 
     if (dto.chargeType && dto.chargeType !== charge.chargeType) {
-      const existing = await this.repo.findOne({ where: { chargeType: dto.chargeType, isActive: true } });
+      const existing = await this.repo.findOne({
+        where: { chargeType: dto.chargeType, isActive: true },
+      });
       if (existing && existing.id !== id) {
-        throw new BadRequestException(`An active ${dto.chargeType} rule already exists.`);
+        throw new BadRequestException(
+          `An active ${dto.chargeType} rule already exists.`,
+        );
       }
     }
 
@@ -90,11 +123,19 @@ export class DeliveryChargesService {
     await this.auditRepo.save({
       deliveryChargeId: saved.id,
       oldValue,
-      newValue: { name: saved.name, chargeAmount: Number(saved.chargeAmount), chargeType: saved.chargeType, isActive: saved.isActive },
+      newValue: {
+        name: saved.name,
+        chargeAmount: Number(saved.chargeAmount),
+        chargeType: saved.chargeType,
+        isActive: saved.isActive,
+      },
       changedBy: adminId,
     });
 
-    return { message: 'Delivery charge updated successfully.', data: this.toResponse(saved) };
+    return {
+      message: 'Delivery charge updated successfully.',
+      data: this.toResponse(saved),
+    };
   }
 
   async remove(id: string) {
@@ -120,7 +161,10 @@ export class DeliveryChargesService {
       changedBy: adminId,
     });
 
-    return { message: `Delivery charge ${saved.isActive ? 'enabled' : 'disabled'} successfully.`, data: this.toResponse(saved) };
+    return {
+      message: `Delivery charge ${saved.isActive ? 'enabled' : 'disabled'} successfully.`,
+      data: this.toResponse(saved),
+    };
   }
 
   async getActiveCharges(): Promise<ActiveDeliveryChargesResponseDto> {
@@ -153,10 +197,15 @@ export class DeliveryChargesService {
     return result;
   }
 
-  calculateCharges(subtotal: number, activeCharges: ActiveDeliveryChargesResponseDto) {
-    const deliveryCharge = subtotal >= activeCharges.freeShippingThreshold && activeCharges.freeShippingThreshold > 0
-      ? 0
-      : activeCharges.deliveryCharge;
+  calculateCharges(
+    subtotal: number,
+    activeCharges: ActiveDeliveryChargesResponseDto,
+  ) {
+    const deliveryCharge =
+      subtotal >= activeCharges.freeShippingThreshold &&
+      activeCharges.freeShippingThreshold > 0
+        ? 0
+        : activeCharges.deliveryCharge;
     const codCharge = activeCharges.codCharge;
     const handlingCharge = activeCharges.handlingCharge;
     return { deliveryCharge, codCharge, handlingCharge };
@@ -171,6 +220,8 @@ export class DeliveryChargesService {
   }
 
   private toResponse(charge: DeliveryCharge): DeliveryChargeResponseDto {
-    return plainToInstance(DeliveryChargeResponseDto, charge, { excludeExtraneousValues: true });
+    return plainToInstance(DeliveryChargeResponseDto, charge, {
+      excludeExtraneousValues: true,
+    });
   }
 }

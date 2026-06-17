@@ -15,18 +15,18 @@ export class DeliveryChargeQueryDto {
   search?: string;
 
   @ApiPropertyOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }: { value: string }) => value === 'true')
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 
   @ApiPropertyOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsOptional()
   page?: number;
 
   @ApiPropertyOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsOptional()
   limit?: number;
 }

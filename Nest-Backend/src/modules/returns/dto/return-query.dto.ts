@@ -7,13 +7,13 @@ export class ReturnQueryDto {
   @ApiPropertyOptional({ enum: ReturnRequestStatus })
   @IsOptional()
   @IsEnum(ReturnRequestStatus)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   status?: ReturnRequestStatus;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional()

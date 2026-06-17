@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
@@ -5,7 +6,8 @@ import { DataSource } from 'typeorm';
 export class InventoryReportService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async getReport(_dateFrom?: string, _dateTo?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getReport(dateFrom?: string, dateTo?: string) {
     const qb = this.dataSource
       .createQueryBuilder()
       .select([

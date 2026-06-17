@@ -6,31 +6,31 @@ export class SecurityEventQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   eventType?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   severity?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   userId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateFrom?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   dateTo?: string;
 
   @ApiPropertyOptional()

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -167,7 +167,13 @@ export class ShipmentsService {
           orderNumber: order.orderNumber,
         });
       }
-    } catch {}
+    } catch (error) {
+      Logger.error(
+        'Failed to send shipment notification:',
+        error,
+        'ShipmentsService',
+      );
+    }
   }
 
   private async createLog(

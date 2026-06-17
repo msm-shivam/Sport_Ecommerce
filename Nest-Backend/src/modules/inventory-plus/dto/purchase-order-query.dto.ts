@@ -7,19 +7,19 @@ export class PurchaseOrderQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   search?: string;
 
   @ApiPropertyOptional({ enum: PurchaseOrderStatus })
   @IsOptional()
   @IsEnum(PurchaseOrderStatus)
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   status?: PurchaseOrderStatus;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }: { value: string }) => value || undefined)
   supplierId?: string;
 
   @ApiPropertyOptional()
