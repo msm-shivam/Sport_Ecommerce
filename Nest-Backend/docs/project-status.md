@@ -771,7 +771,16 @@ The Product List API (`GET /products`) supports advanced filtering and sorting:
 - [x] Swagger documentation (all endpoints documented)
 - [x] RBAC integration (AdminJwtGuard + PermissionsGuard on all admin endpoints)
 - [x] Zero TypeScript build errors
-- [x] Automated tracking log creation on status changes
+
+## Patch — Permissions Fix & Permissions API
+
+### Changes
+- **PermissionsGuard** (`src/common/guards/permissions.guard.ts:37`): SUPER_ADMIN role now bypasses all permission checks — never gets "access denied" regardless of `@Permissions()` on endpoint
+- **`GET /admin/permissions`** (`src/modules/rbac/rbac.controller.ts:126`): Removed `PERMISSIONS_MANAGE` requirement — any authenticated admin can list all DB permissions with slug, name, module
+- **`GET /admin/permissions/code`** (`src/modules/rbac/rbac.controller.ts:134`): New endpoint returning all permissions defined in the `DefaultPermissions` enum — the complete list (~130 permissions) with slug, name, and module, directly from code constants
+- **Shared constant** (`src/common/constants/permissions-data.constant.ts`): Extracted `ALL_PERMISSIONS` array from seed.ts into a reusable constant — used by both seed and the new API endpoint
+- **Seed refactored** (`src/database/seeds/seed.ts`): Imports `ALL_PERMISSIONS` from shared constant instead of maintaining duplicate inline list
+
 
 ### Business Rules Implemented
 
@@ -2832,5 +2841,60 @@ src/modules/system-settings-cms/
 - [x] Zero TypeScript build errors
 - [x] Migration executed successfully (29 migrations total)
 - [x] Seed executed successfully
+
+## Layer 24 — Delivery Charges Module (Phase 24)
+
+### Objective
+Create a Delivery Charges module with audit history, charge calculation logic in order flow, and a public endpoint for frontend to display active charges.
+
+### Files Created
+- `src/modules/delivery-charges/delivery-charges.module.ts`
+- `src/modules/delivery-charges/delivery-charges.service.ts`
+- `src/modules/delivery-charges/delivery-charges.controller.ts`
+- `src/modules/delivery-charges/public-delivery-charges.controller.ts`
+- `src/modules/delivery-charges/entities/delivery-charge.entity.ts`
+- `src/modules/delivery-charges/entities/delivery-charge-audit.entity.ts`
+- `src/modules/delivery-charges/dto/create-delivery-charge.dto.ts`
+- `src/modules/delivery-charges/dto/update-delivery-charge.dto.ts`
+- `src/modules/delivery-charges/dto/delivery-charge-response.dto.ts`
+- `src/modules/delivery-charges/dto/delivery-charge-query.dto.ts`
+- `src/modules/delivery-charges/dto/active-delivery-charges-response.dto.ts`
+- `src/database/migrations/1749203000000-CreateDeliveryChargesModule.ts`
+
+### Key Design Decisions
+- **DeliveryChargeType enum**: `FIXED_DELIVERY`, `FREE_SHIPPING_THRESHOLD`, `COD_CHARGE`, `HANDLING_CHARGE` — only one active record per type allowed (except `FIXED_DELIVERY`)
+- **Audit trail**: `DeliveryChargeAudit` entity with JSONB old/new snapshots, `changed_by`, `changed_at` — recorded on create, update, toggle
+- **Order integration**: `OrdersService.create()` calls `getActiveCharges()` + `calculateCharges()` and stores `deliveryCharge`, `codCharge`, `handlingCharge` on each order
+- **Free shipping logic**: If `subtotal >= freeShippingThreshold && threshold > 0`, delivery charge is set to 0
+- **Permissions**: `delivery-charge.view`, `delivery-charge.manage` — assigned to ADMIN, SUPER_ADMIN, OPERATIONS_MANAGER (manage+view), CUSTOMER_SUPPORT (view only)
+- **Public endpoint**: `GET /delivery-charges/active` returns active charges for frontend display (no auth)
+- **Toggle endpoint**: `PATCH /admin/delivery-charges/:id/toggle` for quick enable/disable without PUT
+- **Seed data**: Standard Delivery (99, active), Free Shipping Threshold (2000, active), COD Charge (49, active), Handling Charge (0, inactive)
+
+### Deliverables
+
+- [x] DeliveryCharge entity (name, description, chargeAmount, chargeType enum, isActive, createdBy, updatedBy)
+- [x] DeliveryChargeAudit entity (deliveryChargeId FK, oldValue/newValue JSONB, changedBy, changedAt)
+- [x] DeliveryChargeType Enum (4 charge types)
+- [x] CreateDeliveryChargeDto with validation
+- [x] UpdateDeliveryChargeDto (PartialType)
+- [x] DeliveryChargeResponseDto (class-transformer Expose)
+- [x] DeliveryChargeQueryDto (search, chargeType, isActive, page, limit)
+- [x] ActiveDeliveryChargesResponseDto (4 charge fields)
+- [x] DeliveryChargesService (create, findAll, findOne, update, remove, toggleActive, getActiveCharges, calculateCharges, getHistory)
+- [x] DeliveryChargesController (admin CRUD with permissions, :id/history, :id/toggle)
+- [x] PublicDeliveryChargesController (GET /active, no auth)
+- [x] Migration (delivery_charges table, delivery_charge_audits table, enum, indexes, FK, orders charge columns)
+- [x] Order entity extended (deliveryCharge, codCharge, handlingCharge columns)
+- [x] OrderResponseDto extended (3 new charge fields)
+- [x] OrdersService integration (getActiveCharges + calculateCharges in create flow)
+- [x] DeliveryChargesModule wiring
+- [x] app.module.ts wiring
+- [x] data-source.ts wiring
+- [x] database.module.ts wiring
+- [x] Seed data (4 records)
+- [x] Seed permissions (view/manage)
+- [x] Role permissions updated (ADMIN, SUPER_ADMIN, OPERATIONS_MANAGER, CUSTOMER_SUPPORT)
+- [x] Zero TypeScript build errors
 
 

@@ -94,6 +94,33 @@ export class Order extends BaseEntity {
   shippingAmount: number;
 
   @Column({
+    name: 'delivery_charge',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  deliveryCharge: number;
+
+  @Column({
+    name: 'cod_charge',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  codCharge: number;
+
+  @Column({
+    name: 'handling_charge',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  handlingCharge: number;
+
+  @Column({
     name: 'tax_amount',
     type: 'decimal',
     precision: 12,

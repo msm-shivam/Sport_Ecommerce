@@ -19,6 +19,7 @@ import { ProductVariantAttribute } from '../../modules/product-variants/entities
 import { Inventory } from '../../modules/inventory/entities/inventory.entity';
 import { Warehouse } from '../../modules/warehouses/entities/warehouse.entity';
 import { DeliverySetting } from '../../modules/delivery-settings/entities/delivery-setting.entity';
+import { DeliveryCharge, DeliveryChargeType } from '../../modules/delivery-charges/entities/delivery-charge.entity';
 import { Supplier } from '../../modules/inventory-plus/entities/supplier.entity';
 import { PurchaseOrder } from '../../modules/inventory-plus/entities/purchase-order.entity';
 import { PurchaseOrderItem } from '../../modules/inventory-plus/entities/purchase-order-item.entity';
@@ -254,7 +255,7 @@ async function clearData() {
     'product_tags', 'product_collections', 'collections',
     'inventory', 'stock_alerts', 'stock_adjustments', 'inventory_audits',
     'goods_receipt_items', 'goods_receipts', 'purchase_order_items', 'purchase_orders',
-    'suppliers', 'warehouses', 'delivery_settings',
+    'delivery_charge_audits', 'delivery_charges', 'suppliers', 'warehouses', 'delivery_settings',
     'attribute_values', 'attributes', 'sub_categories', 'categories', 'brands', 'addresses',
     'admin_users', 'users',
   ];
@@ -1329,6 +1330,20 @@ async function seed() {
     }
   }
   console.log('  CouponUsages: 3');
+
+  // ───────────────────────── DELIVERY CHARGES ────────────────────────────────
+  const dcRepo = AppDataSource.getRepository(DeliveryCharge);
+  const dcData = [
+    { name: 'Standard Delivery', description: 'Fixed delivery charge for all orders', chargeAmount: 99, chargeType: DeliveryChargeType.FIXED_DELIVERY, isActive: true, createdBy: adminId },
+    { name: 'Free Shipping Threshold', description: 'Orders above this amount get free delivery', chargeAmount: 2000, chargeType: DeliveryChargeType.FREE_SHIPPING_THRESHOLD, isActive: true, createdBy: adminId },
+    { name: 'COD Charge', description: 'Additional charge for Cash on Delivery orders', chargeAmount: 49, chargeType: DeliveryChargeType.COD_CHARGE, isActive: true, createdBy: adminId },
+    { name: 'Handling Charge', description: 'Handling fee for order processing', chargeAmount: 0, chargeType: DeliveryChargeType.HANDLING_CHARGE, isActive: false, createdBy: adminId },
+  ];
+  for (const d of dcData) {
+    const exists = await dcRepo.findOne({ where: { chargeType: d.chargeType } });
+    if (!exists) await dcRepo.save(dcRepo.create(d));
+  }
+  console.log('  DeliveryCharges: 4');
 
   // ───────────────────────── CONNECTIONS ─────────────────────────────────────
   await AppDataSource.destroy();

@@ -13,6 +13,7 @@ import { AdminOrdersController } from './admin-orders.controller';
 import { AddressesModule } from '../addresses/addresses.module';
 import { WarehousesModule } from '../warehouses/warehouses.module';
 import { DeliverySettingsModule } from '../delivery-settings/delivery-settings.module';
+import { DeliveryChargesModule } from '../delivery-charges/delivery-charges.module';
 import { ShipmentsModule } from '../shipments/shipments.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { ShipmentsModule } from '../shipments/shipments.module';
     AddressesModule,
     WarehousesModule,
     DeliverySettingsModule,
+    DeliveryChargesModule,
     ShipmentsModule,
   ],
   controllers: [OrdersController, AdminOrdersController],

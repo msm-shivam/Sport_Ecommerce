@@ -26,6 +26,7 @@ import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { DefaultPermissions } from '../../common/constants/roles.constants';
 
 @ApiTags('Admin — RBAC')
@@ -125,11 +126,19 @@ export class RbacController {
 
   @Get('permissions')
   @HttpCode(HttpStatus.OK)
-  @Permissions(DefaultPermissions.PERMISSIONS_MANAGE)
   @ApiOperation({ summary: 'List all permissions grouped by module' })
   @ApiResponse({ status: 200, description: 'Permissions list returned.' })
   async findAllPermissions() {
     return this.rbacService.findAllPermissions();
+  }
+
+  @Public()
+  @Get('permissions/code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List all permissions defined in code (DefaultPermissions enum)' })
+  @ApiResponse({ status: 200, description: 'All code-defined permissions with slugs, names, and modules.' })
+  getAllCodePermissions() {
+    return this.rbacService.getAllCodePermissions();
   }
 
   @Get('permissions/:id')

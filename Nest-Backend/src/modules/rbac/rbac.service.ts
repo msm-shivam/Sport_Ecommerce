@@ -13,6 +13,7 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { AssignPermissionsDto } from './dto/assign-permissions.dto';
 import { RbacMessages } from '../../common/constants/messages.constants';
 import { DefaultRoles } from '../../common/constants/roles.constants';
+import { ALL_PERMISSIONS } from '../../common/constants/permissions-data.constant';
 
 @Injectable()
 export class RbacService {
@@ -142,6 +143,10 @@ export class RbacService {
     }
 
     return saved;
+  }
+
+  getAllCodePermissions() {
+    return [...ALL_PERMISSIONS];
   }
 
   async findAllPermissions(): Promise<Permission[]> {

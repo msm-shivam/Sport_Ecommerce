@@ -67,6 +67,9 @@ export enum DefaultPermissions {
   WAREHOUSE_DELETE = 'warehouse.delete',
   // Delivery
   DELIVERY_MANAGE = 'delivery.manage',
+  // Delivery Charges
+  DELIVERY_CHARGE_VIEW = 'delivery-charge.view',
+  DELIVERY_CHARGE_MANAGE = 'delivery-charge.manage',
   // Shipment
   SHIPMENT_VIEW = 'shipment.view',
   SHIPMENT_UPDATE = 'shipment.update',

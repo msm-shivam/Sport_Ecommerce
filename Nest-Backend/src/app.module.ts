@@ -22,6 +22,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { AddressesModule } from './modules/addresses/addresses.module';
 import { WarehousesModule } from './modules/warehouses/warehouses.module';
 import { DeliverySettingsModule } from './modules/delivery-settings/delivery-settings.module';
+import { DeliveryChargesModule } from './modules/delivery-charges/delivery-charges.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { CouponsPromotionsModule } from './modules/coupons-promotions/coupons-promotions.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
@@ -68,6 +69,7 @@ import { ImagesModule } from './modules/images';
     AddressesModule,
     WarehousesModule,
     DeliverySettingsModule,
+    DeliveryChargesModule,
     ShipmentsModule,
     CouponsPromotionsModule,
     WishlistModule,

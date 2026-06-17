@@ -24,6 +24,9 @@ export class OrderResponseDto {
   @Expose() @ApiProperty() subtotal: number;
   @Expose() @ApiProperty() discountAmount: number;
   @Expose() @ApiProperty() shippingAmount: number;
+  @Expose() @ApiProperty() deliveryCharge: number;
+  @Expose() @ApiProperty() codCharge: number;
+  @Expose() @ApiProperty() handlingCharge: number;
   @Expose() @ApiProperty() taxAmount: number;
   @Expose() @ApiProperty() totalAmount: number;
   @Expose() @ApiPropertyOptional() shippingAddressId: string | null;

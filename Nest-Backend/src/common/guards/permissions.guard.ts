@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { DefaultPermissions } from '../constants/roles.constants';
+import { DefaultPermissions, DefaultRoles } from '../constants/roles.constants';
 import { AuthMessages } from '../constants/messages.constants';
 import { AdminJwtPayload } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { Request } from 'express';
@@ -28,6 +28,9 @@ export class PermissionsGuard implements CanActivate {
     const user = request.user;
 
     if (!user) throw new ForbiddenException(AuthMessages.FORBIDDEN);
+
+    // SUPER_ADMIN bypasses all permission checks
+    if (user.roles?.includes(DefaultRoles.SUPER_ADMIN)) return true;
 
     const hasPermission = user.permissions?.some((perm) =>
       requiredPermissions.includes(perm as DefaultPermissions),

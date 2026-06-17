@@ -25,6 +25,7 @@ import { ProductVariant } from '../product-variants/entities/product-variant.ent
 import { AddressesService } from '../addresses/addresses.service';
 import { WarehousesService } from '../warehouses/warehouses.service';
 import { DeliverySettingsService } from '../delivery-settings/delivery-settings.service';
+import { DeliveryChargesService } from '../delivery-charges/delivery-charges.service';
 import { ShipmentsService } from '../shipments/shipments.service';
 import { paginate } from '../../common/utils/pagination.util';
 
@@ -48,6 +49,7 @@ export class OrdersService {
     private readonly addressesService: AddressesService,
     private readonly warehousesService: WarehousesService,
     private readonly deliverySettingsService: DeliverySettingsService,
+    private readonly deliveryChargesService: DeliveryChargesService,
     private readonly shipmentsService: ShipmentsService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -119,9 +121,11 @@ export class OrdersService {
       subtotal,
       settings,
     );
+    const activeCharges = await this.deliveryChargesService.getActiveCharges();
+    const { deliveryCharge, codCharge, handlingCharge } = this.deliveryChargesService.calculateCharges(subtotal, activeCharges);
     const taxAmount = 0;
     const discountAmount = 0;
-    const totalAmount = subtotal + shippingAmount + taxAmount - discountAmount;
+    const totalAmount = subtotal + shippingAmount + deliveryCharge + codCharge + handlingCharge + taxAmount - discountAmount;
 
     const orderNumber = await this.generateOrderNumber();
 
@@ -132,6 +136,9 @@ export class OrdersService {
       subtotal,
       discountAmount,
       shippingAmount,
+      deliveryCharge,
+      codCharge,
+      handlingCharge,
       shippingAddressId: dto.shippingAddressId,
       warehouseId: warehouse.id,
       distanceKm,

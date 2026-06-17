@@ -34,6 +34,8 @@ import { PaymentWebhook } from '../modules/payments/entities/payment-webhook.ent
 import { Address } from '../modules/addresses/entities/address.entity';
 import { Warehouse } from '../modules/warehouses/entities/warehouse.entity';
 import { DeliverySetting } from '../modules/delivery-settings/entities/delivery-setting.entity';
+import { DeliveryCharge } from '../modules/delivery-charges/entities/delivery-charge.entity';
+import { DeliveryChargeAudit } from '../modules/delivery-charges/entities/delivery-charge-audit.entity';
 import { Shipment } from '../modules/shipments/entities/shipment.entity';
 import { ShipmentTrackingLog } from '../modules/shipments/entities/shipment-tracking-log.entity';
 import { Coupon } from '../modules/coupons-promotions/entities/coupon.entity';
@@ -141,6 +143,8 @@ export const AppDataSource = new DataSource({
     Address,
     Warehouse,
     DeliverySetting,
+    DeliveryCharge,
+    DeliveryChargeAudit,
     Shipment,
     ShipmentTrackingLog,
     Coupon,
