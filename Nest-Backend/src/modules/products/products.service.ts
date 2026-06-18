@@ -17,7 +17,6 @@ import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { ProductImageResponseDto } from './dto/product-image-response.dto';
 import { toSlug } from '../../common/utils/slug.util';
 import { paginate } from '../../common/utils/pagination.util';
-import { CatalogMessages } from '../../common/constants/messages.constants';
 import { Brand } from '../brands/entities/brand.entity';
 import { Category } from '../categories/entities/category.entity';
 import { SubCategory } from '../sub-categories/entities/sub-category.entity';
@@ -56,17 +55,18 @@ export class ProductsService {
     });
     if (!category) throw new BadRequestException('Category not found.');
 
-    // Validate SubCategory
-    const subCategory = await this.subCategoryRepo.findOne({
-      where: { id: dto.subCategoryId },
-    });
-    if (!subCategory) throw new BadRequestException('Sub Category not found.');
-
-    // Validate SubCategory belongs to Category
-    if (subCategory.categoryId !== dto.categoryId) {
-      throw new BadRequestException(
-        'Sub Category does not belong to the specified Category.',
-      );
+    // Validate SubCategory (optional)
+    if (dto.subCategoryId) {
+      const subCategory = await this.subCategoryRepo.findOne({
+        where: { id: dto.subCategoryId },
+      });
+      if (!subCategory)
+        throw new BadRequestException('Sub Category not found.');
+      if (subCategory.categoryId !== dto.categoryId) {
+        throw new BadRequestException(
+          'Sub Category does not belong to the specified Category.',
+        );
+      }
     }
 
     // Generate slug
@@ -75,7 +75,7 @@ export class ProductsService {
     const product = this.productRepo.create({
       brandId: dto.brandId,
       categoryId: dto.categoryId,
-      subCategoryId: dto.subCategoryId,
+      subCategoryId: dto.subCategoryId ?? null,
       name: dto.name,
       slug,
       skuPrefix: dto.skuPrefix ?? null,

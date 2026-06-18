@@ -38,13 +38,22 @@ export class AdminService {
     });
     if (exists) throw new BadRequestException(AdminMessages.EMAIL_TAKEN);
 
+    let roles: Role[] = [];
+    if (dto.roleIds && dto.roleIds.length > 0) {
+      roles = await this.roleRepo.findBy({ id: In(dto.roleIds) });
+      if (roles.length !== dto.roleIds.length) {
+        throw new NotFoundException(RbacMessages.ROLE_NOT_FOUND);
+      }
+    }
+
     const passwordHash = await hashPassword(dto.password);
     const admin = this.adminRepo.create({
       name: dto.name,
       email: dto.email.toLowerCase(),
       passwordHash,
       isActive: true,
-      roles: [],
+      roles,
+      avatar: null,
     });
     const saved = await this.adminRepo.save(admin);
     const data = plainToInstance(AdminResponseDto, saved, {
@@ -87,6 +96,7 @@ export class AdminService {
       ...(dto.name && { name: dto.name }),
       ...(dto.email && { email: dto.email.toLowerCase() }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      ...(dto.avatar !== undefined && { avatar: dto.avatar ?? null }),
     });
 
     const saved = await this.adminRepo.save(admin);
@@ -141,13 +151,39 @@ export class AdminService {
     return { message: RbacMessages.ROLE_REVOKED, data };
   }
 
-  async findByIdOrFail(id: string): Promise<AdminUser> {
+  async findByIdOrFail(
+    id: string,
+    loadPermissions = false,
+  ): Promise<AdminUser> {
     const admin = await this.adminRepo.findOne({
       where: { id },
-      relations: { roles: true },
+      relations: loadPermissions
+        ? { roles: { permissions: true } }
+        : { roles: true },
     });
     if (!admin) throw new NotFoundException(AdminMessages.ADMIN_NOT_FOUND);
     return admin;
+  }
+
+  async getProfile(id: string): Promise<{ data: AdminResponseDto }> {
+    const admin = await this.findByIdOrFail(id, true);
+
+    const allPermissions = [
+      ...new Map(
+        (admin.roles ?? [])
+          .flatMap((r) => r.permissions ?? [])
+          .map((p) => [p.slug, { id: p.id, name: p.name, slug: p.slug }]),
+      ).values(),
+    ];
+
+    const data = plainToInstance(
+      AdminResponseDto,
+      { ...admin, permissions: allPermissions },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
+    return { data };
   }
 
   async findByEmail(email: string): Promise<AdminUser | null> {

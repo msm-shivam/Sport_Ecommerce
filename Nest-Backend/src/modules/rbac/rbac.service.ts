@@ -31,10 +31,21 @@ export class RbacService {
     if (existing)
       throw new BadRequestException(RbacMessages.ROLE_ALREADY_EXISTS);
 
+    let permissions: Permission[] = [];
+    if (dto.permissionSlugs && dto.permissionSlugs.length > 0) {
+      permissions = await this.permissionRepo.findBy({
+        slug: In(dto.permissionSlugs),
+      });
+      if (permissions.length !== dto.permissionSlugs.length) {
+        throw new NotFoundException('One or more permission slugs not found.');
+      }
+    }
+
     const role = this.roleRepo.create({
       name: dto.name,
       slug: dto.slug,
       description: dto.description ?? null,
+      permissions,
     });
     return this.roleRepo.save(role);
   }
@@ -71,6 +82,16 @@ export class RbacService {
       ...(dto.slug && { slug: dto.slug }),
       ...(dto.description !== undefined && { description: dto.description }),
     });
+
+    if (dto.permissionSlugs !== undefined) {
+      const permissions = await this.permissionRepo.findBy({
+        slug: In(dto.permissionSlugs),
+      });
+      if (permissions.length !== dto.permissionSlugs.length) {
+        throw new NotFoundException('One or more permission slugs not found.');
+      }
+      role.permissions = permissions;
+    }
 
     return this.roleRepo.save(role);
   }

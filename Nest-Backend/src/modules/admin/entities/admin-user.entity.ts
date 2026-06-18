@@ -25,6 +25,9 @@ export class AdminUser extends BaseEntity {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @Column({ name: 'avatar', type: 'varchar', length: 500, nullable: true })
+  avatar: string | null;
+
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt: Date | null;
 

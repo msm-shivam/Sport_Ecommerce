@@ -1,8 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
@@ -32,4 +34,13 @@ export class CreateAdminDto {
       'Password must contain at least one uppercase, one lowercase, one number, and one special character.',
   })
   password: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Role UUIDs to assign at creation',
+    example: ['uuid-1', 'uuid-2'],
+  })
+  @IsOptional()
+  @IsUUID('4', { each: true })
+  roleIds?: string[];
 }

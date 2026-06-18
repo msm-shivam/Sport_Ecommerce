@@ -7,7 +7,6 @@ import {
   IsUUID,
   IsBoolean,
   Min,
-  Max,
 } from 'class-validator';
 import { VariantStatus } from '../entities/product-variant.entity';
 

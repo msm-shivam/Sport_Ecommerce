@@ -9,6 +9,13 @@ export class RoleDto {
 }
 
 @Exclude()
+export class PermissionDto {
+  @Expose() @ApiProperty() id: string;
+  @Expose() @ApiProperty() name: string;
+  @Expose() @ApiProperty() slug: string;
+}
+
+@Exclude()
 export class AdminResponseDto {
   @Expose()
   @ApiProperty()
@@ -23,6 +30,10 @@ export class AdminResponseDto {
   email: string;
 
   @Expose()
+  @ApiPropertyOptional()
+  avatar: string | null;
+
+  @Expose()
   @ApiProperty()
   isActive: boolean;
 
@@ -30,6 +41,11 @@ export class AdminResponseDto {
   @ApiPropertyOptional({ type: () => [RoleDto] })
   @Type(() => RoleDto)
   roles: RoleDto[];
+
+  @Expose()
+  @ApiPropertyOptional({ type: () => [PermissionDto] })
+  @Type(() => PermissionDto)
+  permissions: PermissionDto[];
 
   @Expose()
   @ApiPropertyOptional()

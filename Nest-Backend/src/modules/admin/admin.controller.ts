@@ -26,10 +26,12 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import {
   DefaultPermissions,
   DefaultRoles,
 } from '../../common/constants/roles.constants';
+import type { AdminJwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Admin — User Management')
 @ApiBearerAuth('JWT')
@@ -37,6 +39,14 @@ import {
 @Controller('admin/users')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get own admin profile with roles and permissions' })
+  @ApiResponse({ status: 200, description: 'Profile returned.' })
+  async getProfile(@CurrentUser() user: AdminJwtPayload) {
+    return this.adminService.getProfile(user.sub);
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

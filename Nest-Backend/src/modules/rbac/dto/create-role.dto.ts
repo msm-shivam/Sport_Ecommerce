@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -28,4 +29,14 @@ export class CreateRoleDto {
   @IsString()
   @MaxLength(500)
   description?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Permission slugs to assign at creation',
+    example: ['product.create', 'product.view'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  permissionSlugs?: string[];
 }

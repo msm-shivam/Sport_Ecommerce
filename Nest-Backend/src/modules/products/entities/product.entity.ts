@@ -36,8 +36,8 @@ export class Product extends BaseEntity {
   @Column({ name: 'category_id', type: 'uuid' })
   categoryId: string;
 
-  @Column({ name: 'sub_category_id', type: 'uuid' })
-  subCategoryId: string;
+  @Column({ name: 'sub_category_id', type: 'uuid', nullable: true })
+  subCategoryId: string | null;
 
   @Column({ length: 255 })
   name: string;
