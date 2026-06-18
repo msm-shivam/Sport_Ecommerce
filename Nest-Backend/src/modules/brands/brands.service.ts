@@ -12,6 +12,7 @@ import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { BrandQueryDto } from './dto/brand-query.dto';
 import { BrandResponseDto } from './dto/brand-response.dto';
+import { CategoryResponseDto } from '../categories/dto/category-response.dto';
 import { toSlug } from '../../common/utils/slug.util';
 import { paginate } from '../../common/utils/pagination.util';
 import { CatalogMessages } from '../../common/constants/messages.constants';
@@ -139,7 +140,11 @@ export class BrandsService {
 
   async findBrandCategories(id: string) {
     const brand = await this.findByIdOrFail(id);
-    return brand.categories;
+    return brand.categories.map((cat) =>
+      plainToInstance(CategoryResponseDto, cat, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   private async findByIdOrFail(id: string): Promise<Brand> {

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsNotEmpty,
@@ -107,15 +108,43 @@ export class CreateProductDto {
   @ApiPropertyOptional({
     example: ['123e4567-e89b-12d3-a456-426614174000'],
     description: 'Collection IDs to assign',
+    type: [String],
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [value];
+      }
+    }
+    return value;
   })
   @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
   collectionIds?: string[];
 
   @ApiPropertyOptional({
     example: ['123e4567-e89b-12d3-a456-426614174000'],
     description: 'Product tag IDs to assign',
+    type: [String],
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [value];
+      }
+    }
+    return value;
   })
   @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
   tagIds?: string[];
 
   @ApiPropertyOptional({

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -45,6 +46,18 @@ export class CreateBrandDto {
   @ApiPropertyOptional({
     example: ['96a36a37-7be7-44b3-9cb2-d318e3d196f4'],
     description: 'Category IDs to link this brand to',
+    type: [String],
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [value];
+      }
+    }
+    return value;
   })
   @IsOptional()
   @IsArray()

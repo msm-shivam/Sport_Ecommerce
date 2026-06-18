@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsNotEmpty,
@@ -44,6 +45,18 @@ export class CreateCategoryDto {
   @ApiPropertyOptional({
     example: ['20000001-0000-4000-8000-000000000002'],
     description: 'Brand IDs to link this category to',
+    type: [String],
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [value];
+      }
+    }
+    return value;
   })
   @IsOptional()
   @IsArray()

@@ -74,15 +74,21 @@ export class ProductQueryDto {
   })
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }: { value: string }) => value || undefined)
-  @Type(() => Boolean)
+  @Transform(({ value }: { value: string | undefined }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
   isFeatured?: boolean;
 
   @ApiPropertyOptional({ example: true, description: 'Filter active products' })
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }: { value: string }) => value || undefined)
-  @Type(() => Boolean)
+  @Transform(({ value }: { value: string | undefined }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
   isActive?: boolean;
 
   @ApiPropertyOptional({
