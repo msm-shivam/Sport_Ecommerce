@@ -15,10 +15,10 @@ import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { DefaultPermissions } from '../../../common/constants/roles.constants';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../../common/decorators/current-user.decorator';
-import type { ReturnQueryDto } from '../dto/return-query.dto';
-import type { SchedulePickupDto } from '../dto/schedule-pickup.dto';
-import type { ProcessRefundDto } from '../dto/process-refund.dto';
-import type { RejectReturnDto } from '../dto/reject-return.dto';
+import { ReturnQueryDto } from '../dto/return-query.dto';
+import { SchedulePickupDto } from '../dto/schedule-pickup.dto';
+import { ProcessRefundDto } from '../dto/process-refund.dto';
+import { RejectReturnDto } from '../dto/reject-return.dto';
 import { ReturnService } from '../services/return.service';
 
 @ApiTags('Admin — Returns')
@@ -37,7 +37,7 @@ export class AdminReturnController {
   @Get(':id')
   @Permissions(DefaultPermissions.RETURN_VIEW)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.returnService.findOne(id);
+    return this.returnService.findOneDetailed(id);
   }
 
   @Post(':id/approve')
@@ -69,6 +69,15 @@ export class AdminReturnController {
     return this.returnService.schedulePickup(id, admin.sub, dto);
   }
 
+  @Post(':id/in-transit')
+  @Permissions(DefaultPermissions.RETURN_RECEIVE)
+  async markInTransit(
+    @CurrentUser() admin: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.returnService.updateShipmentStatus(id, 'IN_TRANSIT' as any);
+  }
+
   @Post(':id/received')
   @Permissions(DefaultPermissions.RETURN_RECEIVE)
   async markReceived(
@@ -76,6 +85,15 @@ export class AdminReturnController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.returnService.markReceived(id, admin.sub);
+  }
+
+  @Post(':id/delivered')
+  @Permissions(DefaultPermissions.RETURN_RECEIVE)
+  async markDelivered(
+    @CurrentUser() admin: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.returnService.updateShipmentStatus(id, 'DELIVERED' as any);
   }
 
   @Post(':id/refund')

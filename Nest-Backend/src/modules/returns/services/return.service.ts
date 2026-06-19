@@ -158,6 +158,118 @@ export class ReturnService {
     return returnRequest;
   }
 
+  async findOneDetailed(returnId: string, userId?: string) {
+    const qb = this.returnRepo
+      .createQueryBuilder('return')
+      .leftJoinAndSelect('return.user', 'user')
+      .leftJoinAndSelect('return.order', 'order')
+      .leftJoinAndSelect('return.items', 'items')
+      .leftJoinAndSelect('items.orderItem', 'orderItem')
+      .leftJoinAndSelect('orderItem.product', 'product')
+      .leftJoinAndSelect('product.images', 'images')
+      .leftJoinAndSelect('return.shipments', 'shipments')
+      .leftJoinAndSelect('return.audits', 'audits')
+      .where('return.id = :returnId', { returnId });
+
+    if (userId) {
+      qb.andWhere('return.userId = :userId', { userId });
+    }
+
+    const r = await qb.getOne();
+    if (!r) throw new NotFoundException('Return request not found');
+
+    // Sort audits by createdAt ascending for the timeline
+    const sortedAudits = (r.audits || []).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+
+    return {
+      id: r.id,
+      returnNumber: r.returnNumber,
+      status: r.status,
+      reason: r.reason,
+      notes: r.notes,
+      totalRefundAmount: r.totalRefundAmount,
+      requestedAt: r.requestedAt,
+      approvedAt: r.approvedAt,
+      completedAt: r.completedAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+
+      // Customer information
+      customer: r.user
+        ? {
+            id: r.user.id,
+            firstName: r.user.firstName,
+            lastName: r.user.lastName,
+            email: r.user.email,
+            mobile: r.user.mobile ?? null,
+          }
+        : null,
+
+      // Original order information
+      order: r.order
+        ? {
+            id: r.order.id,
+            orderNumber: r.order.orderNumber,
+            status: r.order.status,
+            totalAmount: r.order.totalAmount,
+            paymentStatus: r.order.paymentStatus,
+            createdAt: r.order.createdAt,
+          }
+        : null,
+
+      // Return items with product details & images
+      items: (r.items || []).map((item) => {
+        // Find primary image or fallback to first image or placeholder
+        let imageUrl = 'https://placehold.co/200x200?text=No+Image';
+        if (item.orderItem?.product?.images && item.orderItem.product.images.length > 0) {
+          const primaryImg = item.orderItem.product.images.find((img) => img.isPrimary);
+          imageUrl = primaryImg ? primaryImg.imageUrl : item.orderItem.product.images[0].imageUrl;
+        }
+
+        return {
+          id: item.id,
+          quantity: item.quantity,
+          reason: item.reason,
+          condition: item.condition,
+          refundAmount: item.refundAmount,
+          product: item.orderItem
+            ? {
+                orderItemId: item.orderItemId,
+                productName: item.orderItem.productName,
+                sku: item.orderItem.sku,
+                unitPrice: item.orderItem.unitPrice,
+                totalPrice: item.orderItem.totalPrice,
+                imageUrl,
+              }
+            : { orderItemId: item.orderItemId, imageUrl },
+        };
+      }),
+
+      // Reverse shipment / pickup info
+      shipment: r.shipments && r.shipments.length > 0
+        ? {
+            id: r.shipments[0].id,
+            courierName: r.shipments[0].courierName,
+            trackingNumber: r.shipments[0].trackingNumber,
+            status: r.shipments[0].status,
+            pickupDate: r.shipments[0].pickupDate,
+            deliveredDate: r.shipments[0].deliveredDate,
+          }
+        : null,
+
+      // Timeline / Audits
+      timeline: sortedAudits.map((audit) => ({
+        id: audit.id,
+        action: audit.action,
+        performedBy: audit.performedBy,
+        notes: audit.notes,
+        createdAt: audit.createdAt,
+      })),
+    };
+  }
+
   async cancel(returnId: string, userId: string) {
     const returnRequest = await this.findOne(returnId, userId);
     if (returnRequest.status !== ReturnRequestStatus.REQUESTED) {
@@ -175,24 +287,126 @@ export class ReturnService {
   }
 
   async findAll(query: ReturnQueryDto) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+
     const qb = this.returnRepo
       .createQueryBuilder('return')
+      // Customer info
+      .leftJoinAndSelect('return.user', 'user')
+      // Order info
+      .leftJoinAndSelect('return.order', 'order')
+      // Return items + product details
       .leftJoinAndSelect('return.items', 'items')
-      .leftJoinAndSelect('return.shipments', 'shipments')
-      .leftJoinAndSelect('return.user', 'user');
+      .leftJoinAndSelect('items.orderItem', 'orderItem')
+      // Shipment info
+      .leftJoinAndSelect('return.shipments', 'shipments');
 
+    // Filter by status
     if (query.status)
       qb.andWhere('return.status = :status', { status: query.status });
+
+    // Search by customer name, email, return number, or order number
+    if (query.search) {
+      const search = `%${query.search.trim()}%`;
+      qb.andWhere(
+        `(
+          user.firstName ILIKE :search OR
+          user.lastName ILIKE :search OR
+          user.email ILIKE :search OR
+          return.returnNumber ILIKE :search OR
+          order.orderNumber ILIKE :search
+        )`,
+        { search },
+      );
+    }
+
     qb.orderBy('return.requestedAt', 'DESC');
 
-    const page = query.page || 1;
-    const limit = query.limit || 20;
-    const [data, total] = await qb
+    const [returns, total] = await qb
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
-    return { data, total, page, limit };
+    const totalPages = Math.ceil(total / limit);
+
+    const data = returns.map((r) => ({
+      id: r.id,
+      returnNumber: r.returnNumber,
+      status: r.status,
+      reason: r.reason,
+      notes: r.notes,
+      totalRefundAmount: r.totalRefundAmount,
+      requestedAt: r.requestedAt,
+      approvedAt: r.approvedAt,
+      completedAt: r.completedAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+
+      // Customer information
+      customer: r.user
+        ? {
+            id: r.user.id,
+            firstName: r.user.firstName,
+            lastName: r.user.lastName,
+            email: r.user.email,
+            mobile: r.user.mobile ?? null,
+          }
+        : null,
+
+      // Original order information
+      order: r.order
+        ? {
+            id: r.order.id,
+            orderNumber: r.order.orderNumber,
+            status: r.order.status,
+            totalAmount: r.order.totalAmount,
+            paymentStatus: r.order.paymentStatus,
+            createdAt: r.order.createdAt,
+          }
+        : null,
+
+      // Return items with product details
+      items: (r.items || []).map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        reason: item.reason,
+        condition: item.condition,
+        refundAmount: item.refundAmount,
+        product: item.orderItem
+          ? {
+              orderItemId: item.orderItemId,
+              productName: item.orderItem.productName,
+              sku: item.orderItem.sku,
+              unitPrice: item.orderItem.unitPrice,
+              totalPrice: item.orderItem.totalPrice,
+            }
+          : { orderItemId: item.orderItemId },
+      })),
+
+      // Reverse shipment / pickup info
+      shipment: r.shipments && r.shipments.length > 0
+        ? {
+            id: r.shipments[0].id,
+            courierName: r.shipments[0].courierName,
+            trackingNumber: r.shipments[0].trackingNumber,
+            status: r.shipments[0].status,
+            pickupDate: r.shipments[0].pickupDate,
+            deliveredDate: r.shipments[0].deliveredDate,
+          }
+        : null,
+    }));
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+      },
+    };
   }
 
   async approve(returnId: string, adminId: string) {
@@ -275,6 +489,10 @@ export class ReturnService {
       pickupDate: new Date(dto.pickupDate),
     });
     await this.shipmentRepo.save(shipment);
+const d=await this.shipmentRepo.find({
+  where:{returnRequestId:returnId}
+})
+console.log("((_(_()(",d,returnId);
 
     returnRequest.status = ReturnRequestStatus.PICKUP_SCHEDULED;
     await this.returnRepo.save(returnRequest);
@@ -402,9 +620,12 @@ export class ReturnService {
     status: ReverseShipmentStatus,
     trackingNumber?: string,
   ) {
-    const shipment = await this.shipmentRepo.findOne({
+    const shipments = await this.shipmentRepo.find({
       where: { returnRequestId: returnId },
+      order: { createdAt: 'DESC' },
     });
+    const shipment = shipments.length > 0 ? shipments[0] : null;
+
     if (!shipment)
       throw new NotFoundException('No shipment found for this return');
 
