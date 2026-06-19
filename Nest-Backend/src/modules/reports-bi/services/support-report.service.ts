@@ -6,53 +6,49 @@ export class SupportReportService {
   constructor(private readonly dataSource: DataSource) {}
 
   async getReport(dateFrom?: string, dateTo?: string) {
-    const params: Record<string, unknown> = {};
-    let whereClause = '';
-    if (dateFrom) {
-      whereClause += ' AND t.created_at >= :dateFrom';
-      params.dateFrom = dateFrom;
-    }
-    if (dateTo) {
-      whereClause += ' AND t.created_at <= :dateTo';
-      params.dateTo = dateTo;
-    }
+    const qb = this.dataSource
+      .createQueryBuilder()
+      .select([
+        'COUNT(*)::int as "totalTickets"',
+        `COUNT(CASE WHEN t.status = 'OPEN' THEN 1 END)::int as "openTickets"`,
+        `COUNT(CASE WHEN t.status = 'RESOLVED' THEN 1 END)::int as "resolvedTickets"`,
+        `COUNT(CASE WHEN t.status = 'CLOSED' THEN 1 END)::int as "closedTickets"`,
+        `ROUND(COALESCE(AVG(CASE WHEN t.resolved_at IS NOT NULL THEN EXTRACT(EPOCH FROM (t.resolved_at - t.created_at)) / 3600 END), 0)::numeric, 2) as "avgResolutionHours"`,
+        `CASE WHEN COUNT(*) > 0 THEN ROUND((COUNT(CASE WHEN t.status IN ('RESOLVED','CLOSED') THEN 1 END)::decimal / COUNT(*) * 100)::numeric, 2) ELSE 0 END as "resolutionRate"`,
+      ])
+      .from('support_tickets', 't');
 
-    const summary = await this.dataSource.query(
-      `
-      SELECT
-        COUNT(*)::int as "totalTickets",
-        COUNT(CASE WHEN t.status = 'OPEN' THEN 1 END)::int as "openTickets",
-        COUNT(CASE WHEN t.status = 'RESOLVED' THEN 1 END)::int as "resolvedTickets",
-        COUNT(CASE WHEN t.status = 'CLOSED' THEN 1 END)::int as "closedTickets",
-        ROUND(COALESCE(AVG(CASE WHEN t.resolved_at IS NOT NULL THEN EXTRACT(EPOCH FROM (t.resolved_at - t.created_at)) / 3600 END), 0), 2) as "avgResolutionHours",
-        CASE WHEN COUNT(*) > 0
-          THEN ROUND(COUNT(CASE WHEN t.status IN ('RESOLVED','CLOSED') THEN 1 END)::decimal / COUNT(*) * 100, 2)
-          ELSE 0 END as "resolutionRate"
-      FROM "support_tickets" t
-      WHERE 1=1 ${whereClause}
-    `,
-      params,
-    );
+    if (dateFrom) qb.andWhere('t.created_at >= :dateFrom', { dateFrom });
+    if (dateTo) qb.andWhere('t.created_at <= :dateTo', { dateTo });
 
-    const byPriority = await this.dataSource.query(
-      `
-      SELECT t.priority as "priority", COUNT(*)::int as "count"
-      FROM "support_tickets" t WHERE 1=1 ${whereClause}
-      GROUP BY t.priority ORDER BY t.priority
-    `,
-      params,
-    );
+    const summary = await qb.getRawOne();
 
-    const row = summary[0];
+    const priorityQb = this.dataSource
+      .createQueryBuilder()
+      .select(['t.priority as "priority"', 'COUNT(*)::int as "count"'])
+      .from('support_tickets', 't');
+
+    if (dateFrom)
+      priorityQb.andWhere('t.created_at >= :dateFrom', { dateFrom });
+    if (dateTo) priorityQb.andWhere('t.created_at <= :dateTo', { dateTo });
+
+    priorityQb.groupBy('t.priority').orderBy('t.priority');
+
+    const byPriorityRaw = await priorityQb.getRawMany();
+    const byPriority = byPriorityRaw.map((p) => ({
+      priority: p.priority,
+      count: parseInt(p.count, 10),
+    }));
+
     return {
       data: {
-        totalTickets: parseInt(row?.totalTickets ?? '0', 10),
-        openTickets: parseInt(row?.openTickets ?? '0', 10),
-        resolvedTickets: parseInt(row?.resolvedTickets ?? '0', 10),
-        closedTickets: parseInt(row?.closedTickets ?? '0', 10),
-        avgResolutionHours: parseFloat(row?.avgResolutionHours ?? '0'),
-        resolutionRate: parseFloat(row?.resolutionRate ?? '0'),
-        byPriority: byPriority ?? [],
+        totalTickets: parseInt(summary?.totalTickets ?? '0', 10),
+        openTickets: parseInt(summary?.openTickets ?? '0', 10),
+        resolvedTickets: parseInt(summary?.resolvedTickets ?? '0', 10),
+        closedTickets: parseInt(summary?.closedTickets ?? '0', 10),
+        avgResolutionHours: parseFloat(summary?.avgResolutionHours ?? '0'),
+        resolutionRate: parseFloat(summary?.resolutionRate ?? '0'),
+        byPriority,
       },
     };
   }

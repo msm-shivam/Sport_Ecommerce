@@ -31,7 +31,14 @@ export class ProductReportService {
     qb.orderBy('"totalSold"', 'DESC');
 
     const rows = await qb.getRawMany();
-    return { data: rows };
+    const mappedRows = rows.map((r) => ({
+      productId: r.productId,
+      productName: r.productName,
+      totalSold: parseInt(r.totalSold, 10),
+      totalRevenue: parseFloat(r.totalRevenue),
+      orderCount: parseInt(r.orderCount, 10),
+    }));
+    return { data: mappedRows };
   }
 
   async getByCategory(dateFrom?: string, dateTo?: string) {
@@ -61,7 +68,14 @@ export class ProductReportService {
     qb.orderBy('"totalRevenue"', 'DESC');
 
     const rows = await qb.getRawMany();
-    return { data: rows };
+    const mappedRows = rows.map((r) => ({
+      categoryId: r.categoryId,
+      categoryName: r.categoryName,
+      totalSold: parseInt(r.totalSold, 10),
+      totalRevenue: parseFloat(r.totalRevenue),
+      orderCount: parseInt(r.orderCount, 10),
+    }));
+    return { data: mappedRows };
   }
 
   async getByBrand(dateFrom?: string, dateTo?: string) {
@@ -91,6 +105,13 @@ export class ProductReportService {
     qb.orderBy('"totalRevenue"', 'DESC');
 
     const rows = await qb.getRawMany();
-    return { data: rows };
+    const mappedRows = rows.map((r) => ({
+      brandId: r.brandId,
+      brandName: r.brandName,
+      totalSold: parseInt(r.totalSold, 10),
+      totalRevenue: parseFloat(r.totalRevenue),
+      orderCount: parseInt(r.orderCount, 10),
+    }));
+    return { data: mappedRows };
   }
 }

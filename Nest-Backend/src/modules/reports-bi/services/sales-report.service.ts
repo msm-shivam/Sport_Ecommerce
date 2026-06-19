@@ -24,6 +24,13 @@ export class SalesReportService {
     qb.orderBy('DATE(o.created_at)', 'DESC');
 
     const rows = await qb.getRawMany();
-    return { data: rows };
+    const mappedRows = rows.map((r) => ({
+      date: r.date,
+      totalOrders: parseInt(r.totalOrders, 10),
+      totalRevenue: parseFloat(r.totalRevenue),
+      averageOrderValue: parseFloat(r.averageOrderValue),
+    }));
+
+    return { data: mappedRows };
   }
 }

@@ -37,7 +37,12 @@ export class ReturnReportService {
 
     byReason.groupBy('r.reason').orderBy('"count"', 'DESC');
 
-    const reasons = await byReason.getRawMany();
+    const reasonsRaw = await byReason.getRawMany();
+    const reasons = reasonsRaw.map((r) => ({
+      ...r,
+      count: parseInt(r.count, 10),
+      totalRefunded: parseFloat(r.totalRefunded),
+    }));
 
     return {
       data: {

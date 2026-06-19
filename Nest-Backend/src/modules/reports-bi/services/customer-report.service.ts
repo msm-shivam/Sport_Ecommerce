@@ -6,59 +6,75 @@ export class CustomerReportService {
   constructor(private readonly dataSource: DataSource) {}
 
   async getReport(dateFrom?: string, dateTo?: string) {
-    const baseCondition =
-      dateFrom || dateTo
-        ? `WHERE o.created_at ${dateFrom ? '>= :dateFrom' : ''}${dateFrom && dateTo ? ' AND ' : ''}${dateTo ? '<= :dateTo' : ''}`
-        : '';
+    // 1. New Customers
+    const newCustQb = this.dataSource
+      .createQueryBuilder()
+      .select('COUNT(*)::int', 'count')
+      .from('users', 'u');
+    if (dateFrom) newCustQb.andWhere('u.created_at >= :dateFrom', { dateFrom });
+    if (dateTo) newCustQb.andWhere('u.created_at <= :dateTo', { dateTo });
+    const newCustomers = await newCustQb.getRawOne();
 
-    const params: Record<string, unknown> = {};
-    if (dateFrom) params.dateFrom = dateFrom;
-    if (dateTo) params.dateTo = dateTo;
+    // 2. Repeat Customers
+    const repeatCustQb = this.dataSource
+      .createQueryBuilder()
+      .select('o.user_id') // It's user_id in orders table, not customer_id
+      .from('orders', 'o')
+      .where('o.status NOT IN (:...excluded)', { excluded: ['CANCELLED'] })
+      .groupBy('o.user_id')
+      .having('COUNT(o.id) > 1');
 
-    const [newCustomers, repeatCustomers, topSpenders, totalCustomers] =
-      await Promise.all([
-        this.dataSource.query(
-          `SELECT COUNT(*)::int as "count" FROM "users" u ${baseCondition.replace('o.created_at', 'u.created_at')}`,
-          params,
-        ),
-        this.dataSource.query(
-          `
-        SELECT COUNT(*)::int as "count" FROM (
-          SELECT o.customer_id FROM "orders" o
-          WHERE o.status NOT IN ('CANCELLED')
-          ${dateFrom ? 'AND o.created_at >= :dateFrom' : ''}
-          ${dateTo ? 'AND o.created_at <= :dateTo' : ''}
-          GROUP BY o.customer_id HAVING COUNT(o.id) > 1
-        ) repeat
-      `,
-          params,
-        ),
-        this.dataSource.query(
-          `
-        SELECT o.customer_id as "customerId", u.first_name || ' ' || u.last_name as "customerName",
-               COUNT(o.id) as "orderCount", COALESCE(SUM(o.total_amount), 0) as "totalSpent"
-        FROM "orders" o
-        LEFT JOIN "users" u ON u.id = o.customer_id
-        WHERE o.status NOT IN ('CANCELLED')
-        ${dateFrom ? 'AND o.created_at >= :dateFrom' : ''}
-        ${dateTo ? 'AND o.created_at <= :dateTo' : ''}
-        GROUP BY o.customer_id, u.first_name, u.last_name
-        ORDER BY "totalSpent" DESC LIMIT 10
-      `,
-          params,
-        ),
-        this.dataSource.query(
-          'SELECT COUNT(*)::int as "count" FROM "users"',
-          [],
-        ),
-      ]);
+    if (dateFrom)
+      repeatCustQb.andWhere('o.created_at >= :dateFrom', { dateFrom });
+    if (dateTo) repeatCustQb.andWhere('o.created_at <= :dateTo', { dateTo });
+
+    const repeatCustomersCount = await this.dataSource
+      .createQueryBuilder()
+      .select('COUNT(*)::int', 'count')
+      .from(`(${repeatCustQb.getQuery()})`, 'repeat')
+      .setParameters(repeatCustQb.getParameters())
+      .getRawOne();
+
+    // 3. Top Spenders
+    const topSpendersQb = this.dataSource
+      .createQueryBuilder()
+      .select([
+        'o.user_id as "customerId"',
+        `u.first_name || ' ' || u.last_name as "customerName"`,
+        'COUNT(o.id)::int as "orderCount"',
+        'COALESCE(SUM(o.total_amount), 0) as "totalSpent"',
+      ])
+      .from('orders', 'o')
+      .leftJoin('users', 'u', 'u.id = o.user_id')
+      .where('o.status NOT IN (:...excluded)', { excluded: ['CANCELLED'] })
+      .groupBy('o.user_id, u.first_name, u.last_name')
+      .orderBy('"totalSpent"', 'DESC')
+      .limit(10);
+
+    if (dateFrom)
+      topSpendersQb.andWhere('o.created_at >= :dateFrom', { dateFrom });
+    if (dateTo) topSpendersQb.andWhere('o.created_at <= :dateTo', { dateTo });
+
+    const topSpendersRaw = await topSpendersQb.getRawMany();
+    const topSpenders = topSpendersRaw.map((ts) => ({
+      ...ts,
+      orderCount: parseInt(ts.orderCount, 10),
+      totalSpent: parseFloat(ts.totalSpent),
+    }));
+
+    // 4. Total Customers
+    const totalCustomers = await this.dataSource
+      .createQueryBuilder()
+      .select('COUNT(*)::int', 'count')
+      .from('users', 'u')
+      .getRawOne();
 
     return {
       data: {
-        newCustomers: parseInt(newCustomers[0]?.count ?? '0', 10),
-        repeatCustomers: parseInt(repeatCustomers[0]?.count ?? '0', 10),
-        topSpenders: topSpenders ?? [],
-        totalCustomers: parseInt(totalCustomers[0]?.count ?? '0', 10),
+        newCustomers: parseInt(newCustomers?.count ?? '0', 10),
+        repeatCustomers: parseInt(repeatCustomersCount?.count ?? '0', 10),
+        topSpenders,
+        totalCustomers: parseInt(totalCustomers?.count ?? '0', 10),
       },
     };
   }

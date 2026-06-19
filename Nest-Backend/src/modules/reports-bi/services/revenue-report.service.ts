@@ -25,6 +25,14 @@ export class RevenueReportService {
     qb.orderBy(`DATE_TRUNC('month', o.created_at)`, 'DESC');
 
     const rows = await qb.getRawMany();
-    return { data: rows };
+    const mappedRows = rows.map((r) => ({
+      month: r.month,
+      totalOrders: parseInt(r.totalOrders, 10),
+      grossRevenue: parseFloat(r.grossRevenue),
+      discounts: parseFloat(r.discounts),
+      netRevenue: parseFloat(r.netRevenue),
+    }));
+
+    return { data: mappedRows };
   }
 }
