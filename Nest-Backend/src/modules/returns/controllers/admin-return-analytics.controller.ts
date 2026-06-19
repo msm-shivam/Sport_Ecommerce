@@ -1,4 +1,11 @@
-import { Controller, Get, Query, ParseIntPipe, DefaultValuePipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
@@ -27,7 +34,12 @@ export class AdminReturnAnalyticsController {
 
   @Get('products')
   @Permissions(DefaultPermissions.RETURN_VIEW)
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max rows to return (default 20, max 100)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Max rows to return (default 20, max 100)',
+  })
   async getProducts(
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {

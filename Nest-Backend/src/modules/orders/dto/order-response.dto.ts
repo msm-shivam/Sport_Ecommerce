@@ -31,11 +31,17 @@ export class OrderResponseDto {
   @Expose() @ApiProperty({ enum: OrderStatus }) status: OrderStatus;
 
   @Expose()
-  @ApiPropertyOptional({ enum: PaymentStatus, description: 'Payment status synced from payment gateway' })
+  @ApiPropertyOptional({
+    enum: PaymentStatus,
+    description: 'Payment status synced from payment gateway',
+  })
   paymentStatus?: PaymentStatus;
 
   @Expose()
-  @ApiPropertyOptional({ example: 99.99, description: 'Amount paid by customer' })
+  @ApiPropertyOptional({
+    example: 99.99,
+    description: 'Amount paid by customer',
+  })
   paidAmount?: number;
 
   @Expose()

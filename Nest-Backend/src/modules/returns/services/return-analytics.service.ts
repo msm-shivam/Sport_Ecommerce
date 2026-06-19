@@ -86,14 +86,14 @@ export class ReturnAnalyticsService {
       .leftJoin('oi.variant', 'pv')
       .leftJoin('pv.product', 'p')
       // ── Selections ──────────────────────────────────────────────
-      .select('oi.productId',                                      'productId')
-      .addSelect('oi.variantId',                                   'variantId')
-      .addSelect("COALESCE(p.name, oi.productName)",               'productName')
-      .addSelect('pv.sku',                                         'variantSku')
-      .addSelect('COUNT(DISTINCT ri.returnRequestId)',              'returnCount')
-      .addSelect('SUM(ri.quantity)',                                'totalReturnedQty')
-      .addSelect('COALESCE(SUM(ri.refundAmount), 0)',               'revenueLoss')
-      .addSelect('SUM(oi.unitPrice * ri.quantity)',                 'projectedAmount')
+      .select('oi.productId', 'productId')
+      .addSelect('oi.variantId', 'variantId')
+      .addSelect('COALESCE(p.name, oi.productName)', 'productName')
+      .addSelect('pv.sku', 'variantSku')
+      .addSelect('COUNT(DISTINCT ri.returnRequestId)', 'returnCount')
+      .addSelect('SUM(ri.quantity)', 'totalReturnedQty')
+      .addSelect('COALESCE(SUM(ri.refundAmount), 0)', 'revenueLoss')
+      .addSelect('SUM(oi.unitPrice * ri.quantity)', 'projectedAmount')
       // Total qty ever sold for this variant (correlated subquery)
       .addSelect(
         `(
@@ -125,22 +125,24 @@ export class ReturnAnalyticsService {
 
     return rows.map((row) => {
       const totalReturnedQty = Number(row.totalReturnedQty || 0);
-      const totalSoldQty     = Number(row.totalSoldQty     || 0);
+      const totalSoldQty = Number(row.totalSoldQty || 0);
       const returnRate =
         totalSoldQty > 0
           ? parseFloat(((totalReturnedQty / totalSoldQty) * 100).toFixed(2))
           : 0;
 
       return {
-        productId:        row.productId,
-        variantId:        row.variantId,
-        productName:      row.productName,
-        variantName:      row.variantSku,
-        returnCount:      Number(row.returnCount),
+        productId: row.productId,
+        variantId: row.variantId,
+        productName: row.productName,
+        variantName: row.variantSku,
+        returnCount: Number(row.returnCount),
         totalReturnedQty,
         totalSoldQty,
-        projectedAmount:  parseFloat(Number(row.projectedAmount || 0).toFixed(2)),
-        revenueLoss:      parseFloat(Number(row.revenueLoss     || 0).toFixed(2)),
+        projectedAmount: parseFloat(
+          Number(row.projectedAmount || 0).toFixed(2),
+        ),
+        revenueLoss: parseFloat(Number(row.revenueLoss || 0).toFixed(2)),
         returnRate,
       };
     });

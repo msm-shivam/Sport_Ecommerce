@@ -1,19 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { AuditLog } from '../entities/audit-log.entity';
+import { AdminUser } from '../../admin/entities/admin-user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class AuditLogService {
   constructor(
     @InjectRepository(AuditLog)
     private readonly auditLogRepo: Repository<AuditLog>,
+    @InjectRepository(AdminUser)
+    private readonly adminUserRepo: Repository<AdminUser>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   async findAll(query: {
     action?: string;
     entityType?: string;
     userId?: string;
+    severity?: string;
     dateFrom?: string;
     dateTo?: string;
     page?: number;
@@ -31,6 +38,8 @@ export class AuditLogService {
       });
     if (query.userId)
       qb.andWhere('a.user_id = :userId', { userId: query.userId });
+    if (query.severity)
+      qb.andWhere('a.severity = :severity', { severity: query.severity });
     if (query.dateFrom)
       qb.andWhere('a.created_at >= :dateFrom', { dateFrom: query.dateFrom });
     if (query.dateTo)
@@ -42,7 +51,94 @@ export class AuditLogService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
-    return { data, total, page, limit };
+
+    // Calculate metrics
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    // Start of the week (assuming Sunday as start)
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    const [todayLogs, thisWeekLogs, criticalEvents, totalLogs] =
+      await Promise.all([
+        this.auditLogRepo
+          .createQueryBuilder('a')
+          .where('a.created_at >= :startOfToday', { startOfToday })
+          .getCount(),
+        this.auditLogRepo
+          .createQueryBuilder('a')
+          .where('a.created_at >= :startOfWeek', { startOfWeek })
+          .getCount(),
+        this.auditLogRepo
+          .createQueryBuilder('a')
+          .where('a.severity = :severity', { severity: 'critical' })
+          .getCount(),
+        this.auditLogRepo.count(),
+      ]);
+
+    const userIds = [
+      ...new Set(data.map((log) => log.userId).filter(Boolean)),
+    ] as string[];
+    let userMap: Record<string, string> = {};
+
+    if (userIds.length > 0) {
+      const [admins, users] = await Promise.all([
+        this.adminUserRepo.find({
+          where: { id: In(userIds) },
+          select: { id: true, name: true },
+        }),
+        this.userRepo.find({
+          where: { id: In(userIds) },
+          select: { id: true, firstName: true, lastName: true },
+        }),
+      ]);
+
+      userMap = {
+        ...admins.reduce(
+          (acc, admin) => ({ ...acc, [admin.id]: admin.name }),
+          {},
+        ),
+        ...users.reduce(
+          (acc, user) => ({
+            ...acc,
+            [user.id]: `${user.firstName} ${user.lastName}`.trim(),
+          }),
+          {},
+        ),
+      };
+    }
+
+    const mappedData = data.map((log) => ({
+      id: log.id,
+      timestamp: log.createdAt,
+      user: log.userId
+        ? { id: log.userId, name: userMap[log.userId] || 'Unknown User' }
+        : null,
+      action: log.action,
+      module: log.entityType,
+      ipAddress: log.ipAddress,
+      severity: log.severity,
+      oldValues: log.oldValues,
+      newValues: log.newValues,
+    }));
+
+    return {
+      data: mappedData,
+      total,
+      page,
+      limit,
+      metrics: {
+        totalLogs,
+        todayLogs,
+        thisWeekLogs,
+        criticalEvents,
+      },
+    };
   }
 
   async findOne(id: string): Promise<AuditLog> {

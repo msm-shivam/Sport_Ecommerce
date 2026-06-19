@@ -28,10 +28,7 @@ export class InventoryPlusService {
     private readonly auditRepository: Repository<InventoryAudit>,
   ) {}
 
-  async findAll(
-    page = 1,
-    limit = 20,
-  ) {
+  async findAll(page = 1, limit = 20) {
     const [items, total] = await this.inventoryRepository.findAndCount({
       relations: { variant: true },
       skip: (page - 1) * limit,
@@ -43,10 +40,7 @@ export class InventoryPlusService {
     };
   }
 
-  async findLowStock(
-    page = 1,
-    limit = 20,
-  ) {
+  async findLowStock(page = 1, limit = 20) {
     const qb = this.inventoryRepository
       .createQueryBuilder('inv')
       .leftJoinAndSelect('inv.variant', 'variant')
@@ -63,10 +57,7 @@ export class InventoryPlusService {
     };
   }
 
-  async findOutOfStock(
-    page = 1,
-    limit = 20,
-  ) {
+  async findOutOfStock(page = 1, limit = 20) {
     const [items, total] = await this.inventoryRepository.findAndCount({
       where: { availableQuantity: 0 },
       relations: { variant: true },
@@ -79,12 +70,7 @@ export class InventoryPlusService {
     };
   }
 
-  async getAlerts(
-    page = 1,
-    limit = 20,
-    search?: string,
-    status?: string,
-  ) {
+  async getAlerts(page = 1, limit = 20, search?: string, status?: string) {
     const qb = this.alertRepository
       .createQueryBuilder('alert')
       .leftJoinAndSelect('alert.variant', 'variant')
@@ -133,11 +119,7 @@ export class InventoryPlusService {
     };
   }
 
-  async getMovements(
-    page = 1,
-    limit = 20,
-    actionType?: string,
-  ) {
+  async getMovements(page = 1, limit = 20, actionType?: string) {
     const validTypes = Object.values(AuditActionType);
     if (actionType && !validTypes.includes(actionType as AuditActionType)) {
       throw new BadRequestException(

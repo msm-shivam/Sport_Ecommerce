@@ -8,7 +8,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -65,19 +71,27 @@ export class AdminInventoryController {
     @Query('actionType') actionType?: string,
     @Query('status') status?: string,
   ) {
-    return this.inventoryService.getMovements(page, limit, actionType ?? status);
+    return this.inventoryService.getMovements(
+      page,
+      limit,
+      actionType ?? status,
+    );
   }
 
   @Post('alerts/check')
   @Permissions(DefaultPermissions.INVENTORY_VIEW)
-  @ApiOperation({ summary: 'Check all inventory and create alerts for low/out-of-stock items' })
+  @ApiOperation({
+    summary: 'Check all inventory and create alerts for low/out-of-stock items',
+  })
   checkAlerts() {
     return this.inventoryService.checkAndCreateAlerts();
   }
 
   @Post('alerts/resolve')
   @Permissions(DefaultPermissions.INVENTORY_ADJUST)
-  @ApiOperation({ summary: 'Auto-resolve alerts for items now above threshold' })
+  @ApiOperation({
+    summary: 'Auto-resolve alerts for items now above threshold',
+  })
   resolveAlerts() {
     return this.inventoryService.resolveAlerts();
   }

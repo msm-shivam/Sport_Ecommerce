@@ -38,13 +38,17 @@ export class InventoryService {
         where: { sku: dto.variantSku },
       });
       if (!variantBySku) {
-        throw new NotFoundException(`Variant with SKU "${dto.variantSku}" not found`);
+        throw new NotFoundException(
+          `Variant with SKU "${dto.variantSku}" not found`,
+        );
       }
       variantId = variantBySku.id;
     }
 
     if (!variantId) {
-      throw new BadRequestException('Either variantId or variantSku is required');
+      throw new BadRequestException(
+        'Either variantId or variantSku is required',
+      );
     }
 
     // Validate variant exists

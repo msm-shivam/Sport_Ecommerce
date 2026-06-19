@@ -30,4 +30,7 @@ export class AuditLog extends BaseEntity {
 
   @Column({ name: 'user_agent', type: 'varchar', length: 500, nullable: true })
   userAgent: string | null;
+
+  @Column({ type: 'varchar', length: 50, default: 'info' })
+  severity: string;
 }

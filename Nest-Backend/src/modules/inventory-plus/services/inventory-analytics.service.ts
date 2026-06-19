@@ -92,7 +92,10 @@ export class InventoryAnalyticsService {
       const variantMap = new Map(
         variants.map((inv) => [
           inv.variantId,
-          { sku: inv.variant?.sku ?? '', productName: inv.variant?.product?.name ?? '' },
+          {
+            sku: inv.variant?.sku ?? '',
+            productName: inv.variant?.product?.name ?? '',
+          },
         ]),
       );
       for (const r of result) {

@@ -23,6 +23,12 @@ export class AuditLogQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @Transform(({ value }: { value: string }) => value || undefined)
+  severity?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsDateString()
   @Transform(({ value }: { value: string }) => value || undefined)
   dateFrom?: string;

@@ -39,4 +39,3 @@ export class JwtCustomerStrategy extends PassportStrategy(
     return user as User & { sub: string };
   }
 }
-

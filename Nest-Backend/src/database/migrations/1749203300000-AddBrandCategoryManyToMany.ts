@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddBrandCategoryManyToMany1749203300000
-  implements MigrationInterface
-{
+export class AddBrandCategoryManyToMany1749203300000 implements MigrationInterface {
   name = 'AddBrandCategoryManyToMany1749203300000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

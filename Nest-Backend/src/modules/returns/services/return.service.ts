@@ -180,7 +180,8 @@ export class ReturnService {
 
     // Sort audits by createdAt ascending for the timeline
     const sortedAudits = (r.audits || []).sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
 
     return {
@@ -223,9 +224,16 @@ export class ReturnService {
       items: (r.items || []).map((item) => {
         // Find primary image or fallback to first image or placeholder
         let imageUrl = 'https://placehold.co/200x200?text=No+Image';
-        if (item.orderItem?.product?.images && item.orderItem.product.images.length > 0) {
-          const primaryImg = item.orderItem.product.images.find((img) => img.isPrimary);
-          imageUrl = primaryImg ? primaryImg.imageUrl : item.orderItem.product.images[0].imageUrl;
+        if (
+          item.orderItem?.product?.images &&
+          item.orderItem.product.images.length > 0
+        ) {
+          const primaryImg = item.orderItem.product.images.find(
+            (img) => img.isPrimary,
+          );
+          imageUrl = primaryImg
+            ? primaryImg.imageUrl
+            : item.orderItem.product.images[0].imageUrl;
         }
 
         return {
@@ -248,16 +256,17 @@ export class ReturnService {
       }),
 
       // Reverse shipment / pickup info
-      shipment: r.shipments && r.shipments.length > 0
-        ? {
-            id: r.shipments[0].id,
-            courierName: r.shipments[0].courierName,
-            trackingNumber: r.shipments[0].trackingNumber,
-            status: r.shipments[0].status,
-            pickupDate: r.shipments[0].pickupDate,
-            deliveredDate: r.shipments[0].deliveredDate,
-          }
-        : null,
+      shipment:
+        r.shipments && r.shipments.length > 0
+          ? {
+              id: r.shipments[0].id,
+              courierName: r.shipments[0].courierName,
+              trackingNumber: r.shipments[0].trackingNumber,
+              status: r.shipments[0].status,
+              pickupDate: r.shipments[0].pickupDate,
+              deliveredDate: r.shipments[0].deliveredDate,
+            }
+          : null,
 
       // Timeline / Audits
       timeline: sortedAudits.map((audit) => ({
@@ -385,16 +394,17 @@ export class ReturnService {
       })),
 
       // Reverse shipment / pickup info
-      shipment: r.shipments && r.shipments.length > 0
-        ? {
-            id: r.shipments[0].id,
-            courierName: r.shipments[0].courierName,
-            trackingNumber: r.shipments[0].trackingNumber,
-            status: r.shipments[0].status,
-            pickupDate: r.shipments[0].pickupDate,
-            deliveredDate: r.shipments[0].deliveredDate,
-          }
-        : null,
+      shipment:
+        r.shipments && r.shipments.length > 0
+          ? {
+              id: r.shipments[0].id,
+              courierName: r.shipments[0].courierName,
+              trackingNumber: r.shipments[0].trackingNumber,
+              status: r.shipments[0].status,
+              pickupDate: r.shipments[0].pickupDate,
+              deliveredDate: r.shipments[0].deliveredDate,
+            }
+          : null,
     }));
 
     return {
@@ -489,10 +499,10 @@ export class ReturnService {
       pickupDate: new Date(dto.pickupDate),
     });
     await this.shipmentRepo.save(shipment);
-const d=await this.shipmentRepo.find({
-  where:{returnRequestId:returnId}
-})
-console.log("((_(_()(",d,returnId);
+    const d = await this.shipmentRepo.find({
+      where: { returnRequestId: returnId },
+    });
+    console.log('((_(_()(', d, returnId);
 
     returnRequest.status = ReturnRequestStatus.PICKUP_SCHEDULED;
     await this.returnRepo.save(returnRequest);

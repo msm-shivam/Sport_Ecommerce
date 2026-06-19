@@ -217,7 +217,9 @@ export class ProductsService {
     const product = await this.findByIdOrFail(id);
 
     if (dto.brandId !== undefined) {
-      const brand = await this.brandRepo.findOne({ where: { id: dto.brandId } });
+      const brand = await this.brandRepo.findOne({
+        where: { id: dto.brandId },
+      });
       if (!brand) throw new BadRequestException('Brand not found.');
       product.brandId = dto.brandId;
     }
@@ -567,7 +569,12 @@ export class ProductsService {
     );
     return plainToInstance(
       ProductResponseDto,
-      { ...product, images, brandName: brandName ?? product.brand?.name ?? null, categoryName: categoryName ?? product.category?.name ?? null },
+      {
+        ...product,
+        images,
+        brandName: brandName ?? product.brand?.name ?? null,
+        categoryName: categoryName ?? product.category?.name ?? null,
+      },
       { excludeExtraneousValues: true },
     );
   }

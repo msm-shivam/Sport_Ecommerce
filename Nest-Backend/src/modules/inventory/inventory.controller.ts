@@ -36,7 +36,8 @@ export class InventoryController {
   @Permissions(DefaultPermissions.INVENTORY_VIEW)
   @ApiOperation({
     summary: 'Search variants for inventory creation',
-    description: 'Search variants by SKU or barcode to easily select when creating inventory.',
+    description:
+      'Search variants by SKU or barcode to easily select when creating inventory.',
   })
   @ApiQuery({
     name: 'search',

@@ -87,7 +87,10 @@ export class ProductResponseDto {
   isActive: boolean;
 
   @Expose()
-  @ApiProperty({ example: 4.5, description: 'Average rating based on approved reviews' })
+  @ApiProperty({
+    example: 4.5,
+    description: 'Average rating based on approved reviews',
+  })
   averageRating: number;
 
   @Expose()
@@ -119,7 +122,10 @@ export class ProductResponseDto {
   oneStarCount: number;
 
   @Expose()
-  @ApiProperty({ type: [ProductImageResponseDto], description: 'Product images' })
+  @ApiProperty({
+    type: [ProductImageResponseDto],
+    description: 'Product images',
+  })
   @Type(() => ProductImageResponseDto)
   images: ProductImageResponseDto[];
 

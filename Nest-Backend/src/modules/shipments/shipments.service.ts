@@ -61,23 +61,126 @@ export class ShipmentsService {
   }
 
   async findAll(query: ShipmentQueryDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
+    const page = query.page || 1;
+    const limit = query.limit || 10;
 
-    const where: Record<string, unknown> = {};
-    if (query.status) where.status = query.status;
+    const qb = this.shipmentRepo
+      .createQueryBuilder('shipment')
+      .leftJoinAndSelect('shipment.order', 'order')
+      .leftJoinAndSelect('order.user', 'customer')
+      .leftJoinAndSelect('order.shippingAddress', 'shippingAddress')
+      .leftJoinAndSelect('shipment.trackingLogs', 'trackingLogs')
+      .orderBy('shipment.createdAt', 'DESC');
 
-    const [items, total] = await this.shipmentRepo.findAndCount({
-      where,
-      relations: { warehouse: true },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
+    if (query.status) {
+      qb.andWhere('shipment.status = :status', {
+        status: query.status,
+      });
+    }
+
+    if (query.search) {
+      qb.andWhere(
+        `
+      (
+        order.orderNumber ILIKE :search
+        OR shipment.trackingNumber ILIKE :search
+        OR customer.firstName ILIKE :search
+        OR customer.lastName ILIKE :search
+      )
+      `,
+        {
+          search: `%${query.search}%`,
+        },
+      );
+    }
+
+    qb.skip((page - 1) * limit);
+    qb.take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    const mappedItems = items.map((shipment) => {
+      const customer = shipment.order?.user;
+      const address = shipment.order?.shippingAddress;
+
+      let estDelivery: Date | null = null;
+      if (shipment.deliveredAt) {
+        estDelivery = shipment.deliveredAt;
+      } else if (shipment.createdAt) {
+        const est = new Date(shipment.createdAt);
+        est.setDate(est.getDate() + 5); // Default to 5 days estimation
+        estDelivery = est;
+      }
+
+      return {
+        shipmentId: shipment.id,
+        orderId: shipment.order?.orderNumber || shipment.orderId,
+        customer: customer
+          ? `${customer.firstName} ${customer.lastName}`.trim()
+          : 'Unknown',
+        carrier: 'Standard Carrier',
+        trackingId: shipment.trackingNumber,
+        destination: address
+          ? `${address.city}, ${address.state || address.country}`
+          : 'Unknown',
+        estDelivery,
+        status: shipment.status,
+      };
     });
 
-    return paginate(items, total, page, limit);
-  }
+    const paginated = paginate(mappedItems, total, page, limit);
+    const summary = await this.getShipmentSummary();
 
+    return {
+      ...paginated,
+      metrics: summary,
+    };
+  }
+  async getShipmentSummary() {
+    const [
+      totalShipments,
+      packed,
+      dispatched,
+      inTransit,
+      delivered,
+      failed,
+      failedDelivery,
+    ] = await Promise.all([
+      this.shipmentRepo.count(),
+
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.PACKED },
+      }),
+
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.READY_FOR_DISPATCH },
+      }),
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.OUT_FOR_DELIVERY },
+      }),
+
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.DELIVERED },
+      }),
+
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.FAILED_DELIVERY },
+      }),
+      this.shipmentRepo.count({
+        where: { status: ShipmentStatus.PENDING },
+      }),
+    ]);
+
+    return {
+      totalShipments,
+      packed,
+      dispatched,
+      inTransit,
+      delivered,
+      failed,
+      failedDelivery,
+    };
+  }
   async findOne(id: string) {
     const shipment = await this.shipmentRepo.findOne({
       where: { id },

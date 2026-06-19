@@ -15,6 +15,8 @@ import { AdminAuditLogController } from './controllers/admin-audit-log.controlle
 import { AdminSecurityController } from './controllers/admin-security.controller';
 import { AdminPrivacyController } from './controllers/admin-privacy.controller';
 import { CustomerPrivacyController } from './controllers/customer-privacy.controller';
+import { AdminUser } from '../admin/entities/admin-user.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { CustomerPrivacyController } from './controllers/customer-privacy.contro
       SecurityEvent,
       PrivacyRequest,
       ConsentRecord,
+      AdminUser,
+      User,
     ]),
   ],
   controllers: [

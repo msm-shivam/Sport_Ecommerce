@@ -15,7 +15,8 @@ export class CategoryResponseDto {
   @Expose() @ApiPropertyOptional() description: string | null;
   @Expose() @ApiProperty() sortOrder: number;
   @Expose() @ApiProperty() isActive: boolean;
-  @Expose() @ApiProperty({ type: [LinkedBrand], description: 'Linked brands' })
+  @Expose()
+  @ApiProperty({ type: [LinkedBrand], description: 'Linked brands' })
   @Type(() => LinkedBrand)
   brands: LinkedBrand[];
   @Expose() @ApiProperty() createdAt: Date;

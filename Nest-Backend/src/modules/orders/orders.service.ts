@@ -201,9 +201,7 @@ export class OrdersService {
               variantId: inventory.variantId,
               isResolved: false,
               alertType:
-                inventory.availableQuantity <= 0
-                  ? 'OUT_OF_STOCK'
-                  : 'LOW_STOCK',
+                inventory.availableQuantity <= 0 ? 'OUT_OF_STOCK' : 'LOW_STOCK',
             },
           });
           if (!existing) {
@@ -233,7 +231,13 @@ export class OrdersService {
 
     const result = (await this.orderRepo.findOne({
       where: { id: savedOrder.id },
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     })) as Order;
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
@@ -261,7 +265,13 @@ export class OrdersService {
 
     const [items, total] = await this.orderRepo.findAndCount({
       where,
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -278,7 +288,13 @@ export class OrdersService {
   async getMyOrder(userId: string, orderId: string): Promise<OrderResponseDto> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, userId },
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     });
     if (!order) throw new NotFoundException('Order not found.');
     return this.toResponse(order);
@@ -296,7 +312,13 @@ export class OrdersService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     });
 
     return paginate(
@@ -310,7 +332,13 @@ export class OrdersService {
   async getOrder(orderId: string): Promise<OrderResponseDto> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     });
     if (!order) throw new NotFoundException('Order not found.');
     return this.toResponse(order);
@@ -322,7 +350,13 @@ export class OrdersService {
   ): Promise<{ message: string; data: OrderResponseDto }> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     });
     if (!order) throw new NotFoundException('Order not found.');
 
@@ -342,7 +376,13 @@ export class OrdersService {
   ): Promise<{ message: string; data: OrderResponseDto }> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },
-      relations: { items: { product: { images: true }, variant: { attributes: { attribute: true, attributeValue: true } } }, user: true },
+      relations: {
+        items: {
+          product: { images: true },
+          variant: { attributes: { attribute: true, attributeValue: true } },
+        },
+        user: true,
+      },
     });
     if (!order) throw new NotFoundException('Order not found.');
 
@@ -434,9 +474,7 @@ export class OrdersService {
         items: (order.items ?? []).map((item) => {
           let imageUrl: string | undefined;
           if (item.product?.images?.length) {
-            const primary = item.product.images.find(
-              (img) => img.isPrimary,
-            );
+            const primary = item.product.images.find((img) => img.isPrimary);
             imageUrl = primary
               ? primary.imageUrl
               : item.product.images[0].imageUrl;

@@ -120,11 +120,7 @@ export class ReviewsService {
     return reviews.map((r) => this.toResponse(r));
   }
 
-  async update(
-    id: string,
-    userId: string,
-    dto: UpdateReviewDto,
-  ) {
+  async update(id: string, userId: string, dto: UpdateReviewDto) {
     const review = await this.reviewRepository.findOne({
       where: { id },
       relations: { user: true, product: true, images: true },
