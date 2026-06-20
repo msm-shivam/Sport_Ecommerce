@@ -592,20 +592,41 @@ export class DashboardService {
     const rows: Array<{
       id: string;
       name: string;
+      productImage: string;
       categoryName: string;
       unitsSold: string;
       revenue: string;
     }> = await this.dataSource.query(
-      `SELECT p.id, p.name, COALESCE(c.name, '') as "categoryName", SUM(oi.quantity)::int as "unitsSold", COALESCE(SUM(oi.total_price), 0) as revenue
-       FROM order_items oi
-       JOIN orders o ON o.id = oi.order_id
-       JOIN products p ON p.id = oi.product_id
-       LEFT JOIN categories c ON c.id = p.category_id
-       WHERE o.created_at >= $1
-         AND o.payment_status IN ('PAID','REFUNDED','PARTIALLY_REFUNDED')
-       GROUP BY p.id, p.name, c.name
-       ORDER BY revenue DESC
-       LIMIT 5`,
+      `SELECT
+    p.id,
+    p.name,
+    pi.image_url AS "productImage",
+    COALESCE(c.name, '') AS "categoryName",
+    SUM(oi.quantity)::int AS "unitsSold",
+    COALESCE(SUM(oi.total_price), 0) AS revenue
+FROM order_items oi
+JOIN orders o
+    ON o.id = oi.order_id
+JOIN products p
+    ON p.id = oi.product_id
+LEFT JOIN categories c
+    ON c.id = p.category_id
+LEFT JOIN product_images pi
+    ON pi.product_id = p.id
+   AND pi.is_primary = true
+WHERE o.created_at >= $1
+  AND o.payment_status IN (
+      'PAID',
+      'REFUNDED',
+      'PARTIALLY_REFUNDED'
+  )
+GROUP BY
+    p.id,
+    p.name,
+    pi.image_url,
+    c.name
+ORDER BY revenue DESC
+LIMIT 5`,
       [monthStart],
     );
 
@@ -613,6 +634,7 @@ export class DashboardService {
       id: r.id,
       name: r.name,
       category: r.categoryName,
+      imageUrl: r.productImage,
       unitsSold: parseInt(r.unitsSold ?? '0', 10),
       revenue: parseFloat(r.revenue ?? '0'),
     }));

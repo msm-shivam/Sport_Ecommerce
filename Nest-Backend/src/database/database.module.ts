@@ -99,6 +99,7 @@ import { CmsPage } from '../modules/system-settings-cms/entities/cms-page.entity
 import { HomepageSection } from '../modules/system-settings-cms/entities/homepage-section.entity';
 import { ContactSetting } from '../modules/system-settings-cms/entities/contact-setting.entity';
 import { SiteConfiguration } from '../modules/system-settings-cms/entities/site-configuration.entity';
+import { StoreSetting } from '../modules/system-settings-cms/entities/store-setting.entity';
 
 @Module({
   imports: [
@@ -214,6 +215,7 @@ import { SiteConfiguration } from '../modules/system-settings-cms/entities/site-
             HomepageSection,
             ContactSetting,
             SiteConfiguration,
+            StoreSetting
           ],
           migrations: ['dist/database/migrations/*.js'],
           synchronize: false,
