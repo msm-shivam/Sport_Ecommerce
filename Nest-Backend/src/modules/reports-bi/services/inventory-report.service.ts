@@ -30,6 +30,7 @@ export class InventoryReportService {
         'i.quantity as "currentStock"',
         'i.low_stock_threshold as "threshold"',
         'COALESCE(pv.cost_price, 0) as "unitCost"',
+        '(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id AND pi.deleted_at IS NULL ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as "imageUrl"',
       ])
       .from('inventories', 'i')
       .leftJoin('product_variants', 'pv', 'pv.id = i.variant_id')

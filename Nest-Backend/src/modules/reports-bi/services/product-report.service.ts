@@ -14,6 +14,7 @@ export class ProductReportService {
         'COALESCE(SUM(oi.quantity), 0) as "totalSold"',
         'COALESCE(SUM(oi.total_price), 0) as "totalRevenue"',
         'COUNT(DISTINCT o.id) as "orderCount"',
+        '(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id AND pi.deleted_at IS NULL ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as "imageUrl"',
       ])
       .from('products', 'p')
       .leftJoin('order_items', 'oi', 'oi.product_id = p.id')
@@ -34,6 +35,7 @@ export class ProductReportService {
     const mappedRows = rows.map((r) => ({
       productId: r.productId,
       productName: r.productName,
+      imageUrl: r.imageUrl || null,
       totalSold: parseInt(r.totalSold, 10),
       totalRevenue: parseFloat(r.totalRevenue),
       orderCount: parseInt(r.orderCount, 10),

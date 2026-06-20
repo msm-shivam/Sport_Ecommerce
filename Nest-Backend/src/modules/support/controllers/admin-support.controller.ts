@@ -9,7 +9,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -19,6 +19,7 @@ import type { JwtPayload } from '../../../common/decorators/current-user.decorat
 import { SupportService } from '../services/support.service';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { TicketResponseDto } from '../dto/ticket-response.dto';
+import { TicketTagResponseDto } from '../dto/ticket-tag-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { ReplyTicketDto } from '../dto/reply-ticket.dto';
 import { AssignTicketDto } from '../dto/assign-ticket.dto';
@@ -124,15 +125,17 @@ export class AdminSupportController {
 
   @Post(':id/tags')
   @Permissions(DefaultPermissions.SUPPORT_ASSIGN)
+  @ApiCreatedResponse({ type: TicketTagResponseDto, description: 'Tag added' })
   async addTag(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(AppValidationPipe) dto: AddTagDto,
-  ) {
+  ): Promise<TicketTagResponseDto> {
     return this.supportService.addTag(id, dto.tag);
   }
 
   @Delete(':id/tags/:tagId')
   @Permissions(DefaultPermissions.SUPPORT_ASSIGN)
+  @ApiOkResponse({ description: 'Tag removed' })
   async removeTag(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('tagId', ParseUUIDPipe) tagId: string,
@@ -142,7 +145,8 @@ export class AdminSupportController {
 
   @Get(':id/tags')
   @Permissions(DefaultPermissions.SUPPORT_VIEW)
-  async getTags(@Param('id', ParseUUIDPipe) id: string) {
+  @ApiOkResponse({ type: [TicketTagResponseDto], description: 'List of tags' })
+  async getTags(@Param('id', ParseUUIDPipe) id: string): Promise<TicketTagResponseDto[]> {
     return this.supportService.getTags(id);
   }
 }

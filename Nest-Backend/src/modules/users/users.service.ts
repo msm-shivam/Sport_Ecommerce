@@ -146,4 +146,18 @@ export class UsersService {
 
     return { totalCustomers, activeCustomers, verifiedCustomers, newThisMonth, newToday };
   }
+
+  async toggleCustomerActive(id: string): Promise<{ message: string; data: UserResponseDto }> {
+    const user = await this.findByIdOrFail(id);
+    user.isActive = !user.isActive;
+    const saved = await this.userRepo.save(user);
+    const data = plainToInstance(UserResponseDto, saved, { excludeExtraneousValues: true });
+    return { message: `Customer ${saved.isActive ? 'activated' : 'deactivated'} successfully`, data };
+  }
+
+  async deleteCustomer(id: string): Promise<{ message: string }> {
+    const user = await this.findByIdOrFail(id);
+    await this.userRepo.softRemove(user);
+    return { message: 'Customer deleted successfully' };
+  }
 }

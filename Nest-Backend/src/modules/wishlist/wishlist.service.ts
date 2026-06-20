@@ -19,6 +19,8 @@ import { CartItem } from '../cart/entities/cart-item.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateWishlistItemDto } from './dto/create-wishlist-item.dto';
+import { AdminWishlistResponseDto } from './dto/admin-wishlist-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class WishlistService {
@@ -43,7 +45,7 @@ export class WishlistService {
   private async getOrCreateWishlist(userId: string): Promise<Wishlist> {
     let wishlist = await this.wishlistRepository.findOne({
       where: { userId },
-      relations: { items: { product: true, variant: true } },
+      relations: { items: { product: { images: true }, variant: true } },
       withDeleted: false,
     });
     if (!wishlist) {
@@ -241,15 +243,27 @@ export class WishlistService {
     }
   }
 
-  async getWishlistByUserId(userId: string): Promise<{ user: { id: string; firstName: string; lastName: string; email: string }; totalItems: number; items: WishlistItem[] }> {
+  async getWishlistByUserId(userId: string): Promise<AdminWishlistResponseDto> {
     const user = await this.wishlistRepository.manager.getRepository(User).findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
     const wishlist = await this.getOrCreateWishlist(userId);
-    return {
+    const items = (wishlist.items || []).map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        imageUrl:
+          item.product?.images?.length > 0
+            ? item.product.images.find((img) => img.isPrimary)?.imageUrl ??
+              item.product.images.sort((a, b) => a.sortOrder - b.sortOrder)[0]
+                ?.imageUrl
+            : null,
+      },
+    }));
+    return plainToInstance(AdminWishlistResponseDto, {
       user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email },
       totalItems: wishlist.totalItems,
-      items: wishlist.items || [],
-    };
+      items,
+    });
   }
 }

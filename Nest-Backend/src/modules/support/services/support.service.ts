@@ -22,6 +22,7 @@ import { ReplyTicketDto } from '../dto/reply-ticket.dto';
 import { AssignTicketDto } from '../dto/assign-ticket.dto';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { TicketResponseDto } from '../dto/ticket-response.dto';
+import { TicketTagResponseDto } from '../dto/ticket-tag-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { Order } from '../../orders/entities/order.entity';
@@ -429,14 +430,14 @@ export class SupportService {
     return ratingEntity;
   }
 
-  async addTag(ticketId: string, tag: string) {
+  async addTag(ticketId: string, tag: string): Promise<TicketTagResponseDto> {
     const ticket = await this.findOne(ticketId);
     const existing = await this.tagRepo.findOne({ where: { ticketId, tag } });
     if (existing)
       throw new BadRequestException('Tag already exists on this ticket');
     const tagEntity = this.tagRepo.create({ ticketId, tag });
     await this.tagRepo.save(tagEntity);
-    return tagEntity;
+    return plainToInstance(TicketTagResponseDto, tagEntity);
   }
 
   async removeTag(ticketId: string, tagId: string) {
@@ -445,8 +446,9 @@ export class SupportService {
     return { message: 'Tag removed' };
   }
 
-  async getTags(ticketId: string) {
-    return this.tagRepo.find({ where: { ticketId }, order: { tag: 'ASC' } });
+  async getTags(ticketId: string): Promise<TicketTagResponseDto[]> {
+    const tags = await this.tagRepo.find({ where: { ticketId }, order: { tag: 'ASC' } });
+    return plainToInstance(TicketTagResponseDto, tags);
   }
 
   private async updateSlaResponse(ticket: SupportTicket) {
