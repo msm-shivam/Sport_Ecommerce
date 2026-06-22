@@ -32,12 +32,8 @@ import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import {
-  DefaultPermissions,
-  DefaultRoles,
-} from '../../common/constants/roles.constants';
+import { DefaultPermissions } from '../../common/constants/roles.constants';
 import type { AdminJwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Admin — User Management')
@@ -57,9 +53,8 @@ export class AdminController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_CREATE)
-  @ApiOperation({ summary: 'Create a new admin user (Super Admin only)' })
+  @ApiOperation({ summary: 'Create a new admin user' })
   @ApiResponse({ status: 201, description: 'Admin user created.' })
   @ApiResponse({ status: 400, description: 'Email already taken.' })
   async create(@Body() dto: CreateAdminDto) {
@@ -77,7 +72,6 @@ export class AdminController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_UPDATE)
   @ApiOperation({ summary: 'Get admin user by ID' })
   @ApiResponse({ status: 200, description: 'Admin user returned.' })
@@ -88,7 +82,6 @@ export class AdminController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_UPDATE)
   @UseInterceptors(
     FileInterceptor('avatar', {
@@ -134,7 +127,6 @@ export class AdminController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_DELETE)
   @ApiOperation({ summary: 'Delete an admin user' })
   @ApiResponse({ status: 200, description: 'Admin user deleted.' })
@@ -148,7 +140,6 @@ export class AdminController {
 
   @Post(':id/roles')
   @HttpCode(HttpStatus.OK)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ROLES_MANAGE)
   @ApiOperation({ summary: 'Assign roles to an admin user' })
   @ApiResponse({ status: 200, description: 'Roles assigned.' })
@@ -162,7 +153,6 @@ export class AdminController {
 
   @Delete(':id/roles')
   @HttpCode(HttpStatus.OK)
-  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ROLES_MANAGE)
   @ApiOperation({ summary: 'Revoke roles from an admin user' })
   @ApiResponse({ status: 200, description: 'Roles revoked.' })

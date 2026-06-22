@@ -123,7 +123,7 @@ export class AdminService {
 
   async remove(id: string, actorId: string): Promise<{ message: string }> {
     if (id === actorId) {
-      throw new BadRequestException('You cannot delete yourself.');
+      throw new BadRequestException('You cannot delete SuperAdmin.');
     }
 
     const isSuper = await this.isSuperAdmin(id);
