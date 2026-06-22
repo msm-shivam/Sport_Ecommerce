@@ -80,13 +80,13 @@ export class UsersService {
 
     const passwordHash = await hashPassword(dto.newPassword);
     await this.userRepo.update(userId, { passwordHash });
-    await this.auditLogService.log({
-      userId,
-      action: 'PASSWORD_CHANGE',
-      entityType: 'USER',
-      entityId: userId,
-      newValues: { message: 'Password changed' },
-    });
+    // await this.auditLogService.log({
+    //   userId,
+    //   action: 'PASSWORD_CHANGE',
+    //   entityType: 'USER',
+    //   entityId: userId,
+    //   newValues: { message: 'Password changed' },
+    // });
     return { message: UserMessages.PASSWORD_CHANGED };
   }
 

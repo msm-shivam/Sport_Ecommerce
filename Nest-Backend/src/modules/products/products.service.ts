@@ -120,28 +120,28 @@ export class ProductsService {
     }
 
     const result = await this.findByIdOrFail(saved.id);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'CREATE',
-      entityType: 'PRODUCT',
-      entityId: saved.id,
-      newValues: {
-        name: saved.name,
-        slug: saved.slug,
-        shortDescription: saved.shortDescription,
-        description: saved.description,
-        status: saved.status,
-        metaTitle: saved.metaTitle,
-        metaDescription: saved.metaDescription,
-        metaKeywords: saved.metaKeywords,
-        isFeatured: saved.isFeatured,
-        isActive: saved.isActive,
-        brand: saved.brand,
-        category: saved.category,
-        subCategory: saved.subCategory,
-        images: saved.images,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CREATE',
+    //   entityType: 'PRODUCT',
+    //   entityId: saved.id,
+    //   newValues: {
+    //     name: saved.name,
+    //     slug: saved.slug,
+    //     shortDescription: saved.shortDescription,
+    //     description: saved.description,
+    //     status: saved.status,
+    //     metaTitle: saved.metaTitle,
+    //     metaDescription: saved.metaDescription,
+    //     metaKeywords: saved.metaKeywords,
+    //     isFeatured: saved.isFeatured,
+    //     isActive: saved.isActive,
+    //     brand: saved.brand,
+    //     category: saved.category,
+    //     subCategory: saved.subCategory,
+    //     images: saved.images,
+    //   },
+    // });
     return {
       message: 'Product created successfully.',
       data: this.toResponse(result),
@@ -339,27 +339,27 @@ export class ProductsService {
     }
 
     const result = await this.findByIdOrFail(id);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entityType: 'PRODUCT',
-      entityId: result.id,
-      newValues: {
-        name: result.name,
-        slug: result.slug,
-        shortDescription: result.shortDescription,
-        description: result.description,
-        status: result.status,
-        metaTitle: result.metaTitle,
-        metaDescription: result.metaDescription,
-        metaKeywords: result.metaKeywords,
-        isFeatured: result.isFeatured,
-        isActive: result.isActive,
-        brand: result.brand,
-        category: result.category,
-        subCategory: result.subCategory,
-      },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'UPDATE',
+    //   entityType: 'PRODUCT',
+    //   entityId: result.id,
+    //   newValues: {
+    //     name: result.name,
+    //     slug: result.slug,
+    //     shortDescription: result.shortDescription,
+    //     description: result.description,
+    //     status: result.status,
+    //     metaTitle: result.metaTitle,
+    //     metaDescription: result.metaDescription,
+    //     metaKeywords: result.metaKeywords,
+    //     isFeatured: result.isFeatured,
+    //     isActive: result.isActive,
+    //     brand: result.brand,
+    //     category: result.category,
+    //     subCategory: result.subCategory,
+    //   },
+    // });
     return {
       message: 'Product updated successfully.',
       data: this.toResponse(result),
@@ -369,27 +369,27 @@ export class ProductsService {
   async remove(id: string,adminId:string): Promise<{ message: string }> {
     const product = await this.findByIdOrFail(id);
     await this.productRepo.softRemove(product);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'PRODUCT',
-      entityId: product.id,
-      newValues: {
-        name: product.name,
-        slug: product.slug,
-        shortDescription: product.shortDescription,
-        description: product.description,
-        status: product.status,
-        metaTitle: product.metaTitle,
-        metaDescription: product.metaDescription,
-        metaKeywords: product.metaKeywords,
-        isFeatured: product.isFeatured,
-        isActive: product.isActive,
-        brand: product.brand,
-        category: product.category,
-        subCategory: product.subCategory,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'PRODUCT',
+    //   entityId: product.id,
+    //   newValues: {
+    //     name: product.name,
+    //     slug: product.slug,
+    //     shortDescription: product.shortDescription,
+    //     description: product.description,
+    //     status: product.status,
+    //     metaTitle: product.metaTitle,
+    //     metaDescription: product.metaDescription,
+    //     metaKeywords: product.metaKeywords,
+    //     isFeatured: product.isFeatured,
+    //     isActive: product.isActive,
+    //     brand: product.brand,
+    //     category: product.category,
+    //     subCategory: product.subCategory,
+    //   },
+    // });
     return { message: 'Product deleted successfully.' };
   }
 
@@ -401,12 +401,12 @@ export class ProductsService {
       throw new NotFoundException('No products found for the given IDs.');
     }
     await this.productRepo.softRemove(products);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'PRODUCT',
-      newValues: { ProductName: products.map((p) => p.name) },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'PRODUCT',
+    //   newValues: { ProductName: products.map((p) => p.name) },
+    // });
     return { message: `${products.length} product(s) deleted successfully.` };
   }
 

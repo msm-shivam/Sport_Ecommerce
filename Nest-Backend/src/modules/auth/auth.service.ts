@@ -28,6 +28,7 @@ import {
   AuthMessages,
   UserMessages,
 } from '../../common/constants/messages.constants';
+import { AuditLogService } from '../security-compliance/services/audit-log.service';
 import { OTP_EXPIRY_MINUTES } from '../../common/constants/app.constants';
 import {
   JwtPayload,
@@ -54,6 +55,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly notificationsService: NotificationsService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   // ─── Register ────────────────────────────────────────────────────────────────
@@ -165,22 +167,73 @@ export class AuthService {
       where: { email: dto.email.toLowerCase() },
     });
 
-    if (!user)
+    if (!user) {
+      // await this.auditLogService.log({
+      //   userId: null,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'auth',
+      //   entityId: null,
+      //   ipAddress,
+      //   userAgent,
+      //   newValues: { email: dto.email, reason: 'User not found' },
+      // }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
-    if (!user.isActive)
+    }
+    if (!user.isActive) {
+      // await this.auditLogService.log({
+      //   userId: user.id,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'auth',
+      //   entityId: user.id,
+      //   ipAddress,
+      //   userAgent,
+      //   newValues: { email: dto.email, reason: 'Account disabled' },
+      // }).catch(() => {});
       throw new ForbiddenException(AuthMessages.ACCOUNT_DISABLED);
-    if (!user.isEmailVerified)
+    }
+    if (!user.isEmailVerified) {
+      // await this.auditLogService.log({
+      //   userId: user.id,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'auth',
+      //   entityId: user.id,
+      //   ipAddress,
+      //   userAgent,
+      //   newValues: { email: dto.email, reason: 'Email not verified' },
+      // }).catch(() => {});
       throw new ForbiddenException(AuthMessages.EMAIL_NOT_VERIFIED);
+    }
 
     const valid = await comparePassword(dto.password, user.passwordHash);
-    if (!valid)
+    if (!valid) {
+      // await this.auditLogService.log({
+      //   userId: user.id,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'auth',
+      //   entityId: user.id,
+      //   ipAddress,
+      //   userAgent,
+      //   newValues: { email: dto.email, reason: 'Invalid password' },
+      // }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
+    }
 
     const tokens = await this.generateCustomerTokens(
       user,
       ipAddress,
       userAgent,
     );
+
+    // await this.auditLogService.log({
+    //   userId: user.id,
+    //   action: 'LOGIN',
+    //   entityType: 'auth',
+    //   entityId: user.id,
+    //   ipAddress,
+    //   userAgent,
+    //   newValues: { email: dto.email },
+    // }).catch(() => {});
+
     return { message: AuthMessages.LOGIN_SUCCESS, data: tokens };
   }
 

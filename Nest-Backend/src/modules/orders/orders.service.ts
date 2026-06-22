@@ -365,13 +365,13 @@ export class OrdersService {
 
     order.status = dto.status;
     const saved = await this.orderRepo.save(order);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entityType: 'ORDER',
-      entityId: saved.id,
-      newValues: { status: saved.status, notes: saved.notes, orderNumber: saved.orderNumber }
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'UPDATE',
+    //   entityType: 'ORDER',
+    //   entityId: saved.id,
+    //   newValues: { status: saved.status, notes: saved.notes, orderNumber: saved.orderNumber }
+    // });
     return {
       message: 'Order status updated successfully.',
       data: this.toResponse(saved),
@@ -422,13 +422,13 @@ export class OrdersService {
         await this.inventoryRepo.save(inventory);
       }
     }
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'CANCEL',
-      entityType: 'ORDER',
-      entityId: saved.id,
-      newValues: { status: saved.status, notes: saved.notes, orderNumber: saved.orderNumber }
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CANCEL',
+    //   entityType: 'ORDER',
+    //   entityId: saved.id,
+    //   newValues: { status: saved.status, notes: saved.notes, orderNumber: saved.orderNumber }
+    // });
 
     return {
       message: 'Order cancelled successfully.',

@@ -42,6 +42,7 @@ import { SystemSettingsCmsModule } from './modules/system-settings-cms/system-se
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { ImagesModule } from './modules/images';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
@@ -93,6 +94,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],
 })

@@ -57,20 +57,20 @@ export class CategoriesService {
     });
 
     const saved = await this.categoryRepo.save(category);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'CREATE',
-      entityType: 'CATEGORY',
-      entityId: saved.id,
-      newValues: {
-        name: saved.name,
-        slug: saved.slug,
-        image: saved.image,
-        description: saved.description,
-        isActive: saved.isActive,
-        brands: saved.brands,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CREATE',
+    //   entityType: 'CATEGORY',
+    //   entityId: saved.id,
+    //   newValues: {
+    //     name: saved.name,
+    //     slug: saved.slug,
+    //     image: saved.image,
+    //     description: saved.description,
+    //     isActive: saved.isActive,
+    //     brands: saved.brands,
+    //   },
+    // });
     return {
       message: 'Category created successfully.',
       data: this.toResponse(saved),
@@ -144,20 +144,20 @@ export class CategoriesService {
     }
 
     const saved = await this.categoryRepo.save(category);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATED',
-      entityType: 'CATEGORY',
-      entityId: saved.id,
-      newValues: {
-        name: saved.name,
-        slug: saved.slug,
-        image: saved.image,
-        description: saved.description,
-        isActive: saved.isActive,
-        brands: saved.brands,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'UPDATED',
+    //   entityType: 'CATEGORY',
+    //   entityId: saved.id,
+    //   newValues: {
+    //     name: saved.name,
+    //     slug: saved.slug,
+    //     image: saved.image,
+    //     description: saved.description,
+    //     isActive: saved.isActive,
+    //     brands: saved.brands,
+    //   },
+    // });
     return {
       message: 'Category updated successfully.',
       data: this.toResponse(saved),
@@ -167,20 +167,20 @@ export class CategoriesService {
   async remove(id: string,adminId:string): Promise<{ message: string }> {
     const category = await this.findByIdOrFail(id);
     await this.categoryRepo.softRemove(category);
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'CATEGORY',
-      entityId: category.id,
-      newValues: {
-        name: category.name,
-        slug: category.slug,
-        image: category.image,
-        description: category.description,
-        isActive: category.isActive,
-        brands: category.brands,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'CATEGORY',
+    //   entityId: category.id,
+    //   newValues: {
+    //     name: category.name,
+    //     slug: category.slug,
+    //     image: category.image,
+    //     description: category.description,
+    //     isActive: category.isActive,
+    //     brands: category.brands,
+    //   },
+    // });
     return { message: 'Category deleted successfully.' };
   }
 

@@ -41,13 +41,13 @@ export class AttributesService {
 
     const saved = await this.attributeRepo.save(attribute);
 
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'CREATE',
-      entityType: 'ATTRIBUTE',
-      entityId: saved.id,
-      newValues:{ name:saved.name,slug:saved.slug,isFilterable:saved.isFilterable,isRequired:saved.isRequired,sortOrder:saved.sortOrder }
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CREATE',
+    //   entityType: 'ATTRIBUTE',
+    //   entityId: saved.id,
+    //   newValues:{ name:saved.name,slug:saved.slug,isFilterable:saved.isFilterable,isRequired:saved.isRequired,sortOrder:saved.sortOrder }
+    // });
     return {
       message: 'Attribute created successfully.',
       data: this.toResponse(saved),
@@ -108,13 +108,13 @@ export class AttributesService {
     if (dto.sortOrder !== undefined) attribute.sortOrder = dto.sortOrder;
 
     const saved = await this.attributeRepo.save(attribute);
-       await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entityType: 'ATTRIBUTE',
-      entityId: saved.id,
-      newValues:{ name:saved.name,slug:saved.slug,isFilterable:saved.isFilterable,isRequired:saved.isRequired,sortOrder:saved.sortOrder }
-    });
+    //    await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'UPDATE',
+    //   entityType: 'ATTRIBUTE',
+    //   entityId: saved.id,
+    //   newValues:{ name:saved.name,slug:saved.slug,isFilterable:saved.isFilterable,isRequired:saved.isRequired,sortOrder:saved.sortOrder }
+    // });
     return {
       message: 'Attribute updated successfully.',
       data: this.toResponse(saved),
@@ -124,19 +124,19 @@ export class AttributesService {
   async remove(id: string, adminId: string): Promise<{ message: string }> {
     const attribute = await this.findByIdOrFail(id);
     await this.attributeRepo.remove(attribute);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'ATTRIBUTE',
-      entityId: attribute.id,
-      newValues: {
-        name: attribute.name,
-        slug: attribute.slug,
-        isFilterable: attribute.isFilterable,
-        isRequired: attribute.isRequired,
-        sortOrder: attribute.sortOrder,
-      },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'ATTRIBUTE',
+    //   entityId: attribute.id,
+    //   newValues: {
+    //     name: attribute.name,
+    //     slug: attribute.slug,
+    //     isFilterable: attribute.isFilterable,
+    //     isRequired: attribute.isRequired,
+    //     sortOrder: attribute.sortOrder,
+    //   },
+    // });
     return { message: 'Attribute deleted successfully.' };
   }
 

@@ -56,20 +56,20 @@ export class BrandsService {
     });
 
     const saved = await this.brandRepo.save(brand);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'CREATE',
-      entityType: 'BRAND',
-      entityId: saved.id,
-      newValues: {
-        name: saved.name,
-        slug: saved.slug,
-        logo: saved.logo,
-        description: saved.description,
-        isActive: saved.isActive,
-        categories: saved.categories,
-      },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CREATE',
+    //   entityType: 'BRAND',
+    //   entityId: saved.id,
+    //   newValues: {
+    //     name: saved.name,
+    //     slug: saved.slug,
+    //     logo: saved.logo,
+    //     description: saved.description,
+    //     isActive: saved.isActive,
+    //     categories: saved.categories,
+    //   },
+    // });
     return {
       message: 'Brand created successfully.',
       data: this.toResponse(saved),
@@ -145,20 +145,20 @@ export class BrandsService {
     }
 
     const saved = await this.brandRepo.save(brand);
-   await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entityType: 'BRAND',
-      entityId: brand.id,
-      newValues: {
-        name: brand.name,
-        slug: brand.slug,
-        logo: brand.logo,
-        description: brand.description,
-        isActive: brand.isActive,
-        categories: brand.categories,
-      },
-    });
+  //  await this.auditLogService.log({
+  //     userId: adminId,
+  //     action: 'UPDATE',
+  //     entityType: 'BRAND',
+  //     entityId: brand.id,
+  //     newValues: {
+  //       name: brand.name,
+  //       slug: brand.slug,
+  //       logo: brand.logo,
+  //       description: brand.description,
+  //       isActive: brand.isActive,
+  //       categories: brand.categories,
+  //     },
+  //   });
     return {
       message: 'Brand updated successfully.',
       data: this.toResponse(saved),
@@ -168,20 +168,20 @@ export class BrandsService {
   async remove(id: string,adminId:string): Promise<{ message: string }> {
     const brand = await this.findByIdOrFail(id);
     await this.brandRepo.softRemove(brand);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'BRAND',
-      entityId: brand.id,
-      newValues: {
-        name: brand.name,
-        slug: brand.slug,
-        logo: brand.logo,
-        description: brand.description,
-        isActive: brand.isActive,
-        categories: brand.categories,
-      },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'BRAND',
+    //   entityId: brand.id,
+    //   newValues: {
+    //     name: brand.name,
+    //     slug: brand.slug,
+    //     logo: brand.logo,
+    //     description: brand.description,
+    //     isActive: brand.isActive,
+    //     categories: brand.categories,
+    //   },
+    // });
     return { message: 'Brand deleted successfully.' };
   }
 

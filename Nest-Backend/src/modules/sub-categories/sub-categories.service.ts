@@ -49,21 +49,21 @@ export class SubCategoriesService {
 
     const saved = await this.subCategoryRepo.save(subCategory);
     saved.category = category;
-     await this.auditLogService.log({
-      userId: adminId,
-      action: 'CREATE',
-      entityType: 'SUB_CATEGORY',
-      entityId: saved.id,
-      newValues: {
-        name: saved.name,
-        slug: saved.slug,
-        image: saved.image,
-        description: saved.description,
-        sortOrder: saved.sortOrder,
-        isActive: saved.isActive,
-        category: saved.category,
-      },
-    });
+    //  await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'CREATE',
+    //   entityType: 'SUB_CATEGORY',
+    //   entityId: saved.id,
+    //   newValues: {
+    //     name: saved.name,
+    //     slug: saved.slug,
+    //     image: saved.image,
+    //     description: saved.description,
+    //     sortOrder: saved.sortOrder,
+    //     isActive: saved.isActive,
+    //     category: saved.category,
+    //   },
+    // });
     return {
       message: 'Sub category created successfully.',
       data: this.toResponse(saved),
@@ -127,21 +127,21 @@ export class SubCategoriesService {
 
     const saved = await this.subCategoryRepo.save(subCategory);
     saved.category = subCategory.category;
-        await this.auditLogService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entityType: 'SUB_CATEGORY',
-      entityId: subCategory.id,
-      newValues: {
-        name: subCategory.name,
-        slug: subCategory.slug,
-        image: subCategory.image,
-        description: subCategory.description,
-        sortOrder: subCategory.sortOrder,
-        isActive: subCategory.isActive,
-        category: subCategory.category,
-      },
-    });
+    //     await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'UPDATE',
+    //   entityType: 'SUB_CATEGORY',
+    //   entityId: subCategory.id,
+    //   newValues: {
+    //     name: subCategory.name,
+    //     slug: subCategory.slug,
+    //     image: subCategory.image,
+    //     description: subCategory.description,
+    //     sortOrder: subCategory.sortOrder,
+    //     isActive: subCategory.isActive,
+    //     category: subCategory.category,
+    //   },
+    // });
     return {
       message: 'Sub category updated successfully.',
       data: this.toResponse(saved),
@@ -151,21 +151,21 @@ export class SubCategoriesService {
   async remove(id: string,adminId: string): Promise<{ message: string }> {
     const subCategory = await this.findByIdOrFail(id);
     await this.subCategoryRepo.softRemove(subCategory);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entityType: 'SUB_CATEGORY',
-      entityId: subCategory.id,
-      newValues: {
-        name: subCategory.name,
-        slug: subCategory.slug,
-        image: subCategory.image,
-        description: subCategory.description,
-        sortOrder: subCategory.sortOrder,
-        isActive: subCategory.isActive,
-        category: subCategory.category,
-      },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'DELETE',
+    //   entityType: 'SUB_CATEGORY',
+    //   entityId: subCategory.id,
+    //   newValues: {
+    //     name: subCategory.name,
+    //     slug: subCategory.slug,
+    //     image: subCategory.image,
+    //     description: subCategory.description,
+    //     sortOrder: subCategory.sortOrder,
+    //     isActive: subCategory.isActive,
+    //     category: subCategory.category,
+    //   },
+    // });
     return { message: 'Sub category deleted successfully.' };
   }
 

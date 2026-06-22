@@ -49,25 +49,49 @@ export class AdminAuthService {
       relations: { roles: { permissions: true } },
     });
 
-    if (!admin)
+    if (!admin) {
+      // await this.auditLogService.log({
+      //   userId: null,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'ADMIN',
+      //   entityId: null,
+      //   newValues: { email: dto.email, reason: 'Admin not found' },
+      // }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
-    if (!admin.isActive)
+    }
+    if (!admin.isActive) {
+      // await this.auditLogService.log({
+      //   userId: admin.id,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'ADMIN',
+      //   entityId: admin.id,
+      //   newValues: { email: dto.email, reason: 'Account disabled' },
+      // }).catch(() => {});
       throw new ForbiddenException(AuthMessages.ACCOUNT_DISABLED);
+    }
 
     const valid = await comparePassword(dto.password, admin.passwordHash);
-    if (!valid)
+    if (!valid) {
+      // await this.auditLogService.log({
+      //   userId: admin.id,
+      //   action: 'LOGIN_FAILED',
+      //   entityType: 'ADMIN',
+      //   entityId: admin.id,
+      //   newValues: { email: dto.email, reason: 'Invalid password' },
+      // }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
+    }
 
     await this.adminRepo.update(admin.id, { lastLoginAt: new Date() });
 
     const tokens = await this.generateAdminTokens(admin, ipAddress, userAgent);
-     await this.auditLogService.log({
-      userId: admin.id,
-      action: 'LOGIN',
-      entityType: 'ADMIN',
-      entityId: admin.id,
-      newValues: { lastLoginAt: admin.lastLoginAt,email:admin.email,name:admin.name },
-    });
+    //  await this.auditLogService.log({
+    //   userId: admin.id,
+    //   action: 'LOGIN',
+    //   entityType: 'ADMIN',
+    //   entityId: admin.id,
+    //   newValues: { lastLoginAt: admin.lastLoginAt,email:admin.email,name:admin.name },
+    // });
     return { message: AuthMessages.LOGIN_SUCCESS, data: tokens };
   }
 
@@ -115,6 +139,12 @@ export class AdminAuthService {
     refreshToken: string,
   ): Promise<{ message: string }> {
     await this.adminSessionRepo.delete({ adminId, refreshToken });
+    await this.auditLogService.log({
+      userId: adminId,
+      action: 'LOGOUT',
+      entityType: 'ADMIN',
+      entityId: adminId,
+    }).catch(() => {});
     return { message: AuthMessages.LOGOUT_SUCCESS };
   }
 

@@ -84,18 +84,18 @@ export class InventoryService {
     });
 
     const savedInventory = await this.inventoryRepo.save(inventory);
-    await this.auditLogService.log({
-      userId: adminId,
-      action: 'create',
-      entityType: 'Inventory',
-      newValues: {  variantId,
-      quantity: dto.quantity,
-      reservedQuantity: dto.reservedQuantity || 0,
-      availableQuantity: dto.quantity - (dto.reservedQuantity || 0),
-      lowStockThreshold: dto.lowStockThreshold ?? 5,
-      reorderPoint: dto.reorderPoint ?? 10,
-      reorderQuantity: dto.reorderQuantity ?? 50, },
-    });
+    // await this.auditLogService.log({
+    //   userId: adminId,
+    //   action: 'create',
+    //   entityType: 'Inventory',
+    //   newValues: {  variantId,
+    //   quantity: dto.quantity,
+    //   reservedQuantity: dto.reservedQuantity || 0,
+    //   availableQuantity: dto.quantity - (dto.reservedQuantity || 0),
+    //   lowStockThreshold: dto.lowStockThreshold ?? 5,
+    //   reorderPoint: dto.reorderPoint ?? 10,
+    //   reorderQuantity: dto.reorderQuantity ?? 50, },
+    // });
     return this.toResponse(savedInventory);
   }
 
