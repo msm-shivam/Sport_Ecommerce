@@ -34,4 +34,8 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty()
   createdAt: Date;
+
+  @Expose()
+  @ApiPropertyOptional()
+  avatar: string | null;
 }

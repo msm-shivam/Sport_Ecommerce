@@ -107,12 +107,13 @@ export class ProductsService {
 
     // Save uploaded images
     if (files && files.length > 0) {
+      const primaryIdx = dto.primaryImageIndex ?? 0;
       const images = files.map((file, index) =>
         this.productImageRepo.create({
           productId: saved.id,
           imageUrl: `/uploads/products/${file.filename}`,
           sortOrder: index,
-          isPrimary: index === 0,
+          isPrimary: index === primaryIdx,
         }),
       );
       await this.productImageRepo.save(images);
@@ -316,14 +317,22 @@ export class ProductsService {
 
     // Save uploaded images (adds to existing images)
     if (files && files.length > 0) {
+      // Unset existing primary so the new one takes over
+      await this.productImageRepo.update(
+        { productId: id, isPrimary: true },
+        { isPrimary: false },
+      );
+
       const lastSortOrder = await this.productImageRepo.maximum('sortOrder', {
         productId: id,
       });
+      const primaryIdx = dto.primaryImageIndex ?? 0;
       const images = files.map((file, index) =>
         this.productImageRepo.create({
           productId: id,
           imageUrl: `/uploads/products/${file.filename}`,
           sortOrder: (lastSortOrder ?? 0) + index + 1,
+          isPrimary: index === primaryIdx,
         }),
       );
       await this.productImageRepo.save(images);

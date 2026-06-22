@@ -12,12 +12,18 @@ import { Role } from '../rbac/entities/role.entity';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AssignRolesDto } from './dto/assign-roles.dto';
+import { ChangeAdminPasswordDto } from './dto/change-admin-password.dto';
 import { AdminResponseDto } from './dto/admin-response.dto';
-import { hashPassword } from '../../common/utils/password.util';
+import {
+  comparePassword,
+  hashPassword,
+} from '../../common/utils/password.util';
 import {
   AdminMessages,
+  AuthMessages,
   RbacMessages,
 } from '../../common/constants/messages.constants';
+import { DefaultRoles } from '../../common/constants/roles.constants';
 
 @Injectable()
 export class AdminService {
@@ -82,6 +88,7 @@ export class AdminService {
   async update(
     id: string,
     dto: UpdateAdminDto,
+    actorId?: string,
   ): Promise<{ message: string; data: AdminResponseDto }> {
     const admin = await this.findByIdOrFail(id);
 
@@ -106,7 +113,24 @@ export class AdminService {
     return { message: 'Admin user updated successfully.', data };
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  private async isSuperAdmin(id: string): Promise<boolean> {
+    const admin = await this.adminRepo.findOne({
+      where: { id },
+      relations: { roles: true },
+    });
+    return admin?.roles?.some((r) => r.slug === DefaultRoles.SUPER_ADMIN) ?? false;
+  }
+
+  async remove(id: string, actorId: string): Promise<{ message: string }> {
+    if (id === actorId) {
+      throw new BadRequestException('You cannot delete yourself.');
+    }
+
+    const isSuper = await this.isSuperAdmin(id);
+    if (isSuper) {
+      throw new BadRequestException('Cannot delete a super admin.');
+    }
+
     const admin = await this.findByIdOrFail(id);
     await this.adminSessionRepo.delete({ adminId: id });
     await this.adminRepo.remove(admin);
@@ -117,6 +141,11 @@ export class AdminService {
     id: string,
     dto: AssignRolesDto,
   ): Promise<{ message: string; data: AdminResponseDto }> {
+    const isSuper = await this.isSuperAdmin(id);
+    if (isSuper) {
+      throw new BadRequestException('Cannot modify roles of a super admin.');
+    }
+
     const admin = await this.findByIdOrFail(id);
 
     const roles = await this.roleRepo.findBy({ id: In(dto.roleIds) });
@@ -140,6 +169,11 @@ export class AdminService {
     id: string,
     dto: AssignRolesDto,
   ): Promise<{ message: string; data: AdminResponseDto }> {
+    const isSuper = await this.isSuperAdmin(id);
+    if (isSuper) {
+      throw new BadRequestException('Cannot modify roles of a super admin.');
+    }
+
     const admin = await this.findByIdOrFail(id);
     const revokeSet = new Set(dto.roleIds);
     admin.roles = (admin.roles ?? []).filter((r) => !revokeSet.has(r.id));
@@ -184,6 +218,21 @@ export class AdminService {
       },
     );
     return { data };
+  }
+
+  async changePassword(
+    id: string,
+    dto: ChangeAdminPasswordDto,
+  ): Promise<{ message: string }> {
+    const admin = await this.adminRepo.findOne({ where: { id } });
+    if (!admin) throw new NotFoundException(AdminMessages.ADMIN_NOT_FOUND);
+
+    const valid = await comparePassword(dto.currentPassword, admin.passwordHash);
+    if (!valid) throw new BadRequestException(AuthMessages.INVALID_CREDENTIALS);
+
+    const passwordHash = await hashPassword(dto.newPassword);
+    await this.adminRepo.update(id, { passwordHash });
+    return { message: 'Password changed successfully.' };
   }
 
   async findByEmail(email: string): Promise<AdminUser | null> {

@@ -18,12 +18,14 @@ import {
   AuthMessages,
   UserMessages,
 } from '../../common/constants/messages.constants';
+import { AuditLogService } from '../security-compliance/services/audit-log.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   async getProfile(userId: string): Promise<UserResponseDto> {
@@ -39,6 +41,13 @@ export class UsersService {
   ): Promise<{ message: string; data: UserResponseDto }> {
     const user = await this.findByIdOrFail(userId);
 
+    if (dto.email && dto.email.toLowerCase() !== user.email) {
+      const existing = await this.userRepo.findOne({
+        where: { email: dto.email.toLowerCase() },
+      });
+      if (existing) throw new BadRequestException(UserMessages.EMAIL_TAKEN);
+    }
+
     if (dto.mobile && dto.mobile !== user.mobile) {
       const existing = await this.userRepo.findOne({
         where: { mobile: dto.mobile },
@@ -49,6 +58,7 @@ export class UsersService {
     Object.assign(user, {
       ...(dto.firstName && { firstName: dto.firstName }),
       ...(dto.lastName && { lastName: dto.lastName }),
+      ...(dto.email !== undefined && { email: dto.email.toLowerCase() }),
       ...(dto.mobile !== undefined && { mobile: dto.mobile }),
     });
 
@@ -70,7 +80,27 @@ export class UsersService {
 
     const passwordHash = await hashPassword(dto.newPassword);
     await this.userRepo.update(userId, { passwordHash });
+    await this.auditLogService.log({
+      userId,
+      action: 'PASSWORD_CHANGE',
+      entityType: 'USER',
+      entityId: userId,
+      newValues: { message: 'Password changed' },
+    });
     return { message: UserMessages.PASSWORD_CHANGED };
+  }
+
+  async updateAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<{ message: string; data: UserResponseDto }> {
+    const user = await this.findByIdOrFail(userId);
+    user.avatar = `/uploads/avatars/${file.filename}`;
+    const saved = await this.userRepo.save(user);
+    const data = plainToInstance(UserResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
+    return { message: UserMessages.PROFILE_UPDATED, data };
   }
 
   async findByIdOrFail(id: string): Promise<User> {

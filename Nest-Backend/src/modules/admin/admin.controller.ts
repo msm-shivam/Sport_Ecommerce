@@ -9,10 +9,17 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -83,13 +90,46 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_UPDATE)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: './uploads/avatars',
+        filename: (req, file, cb) => {
+          const ext = extname(file.originalname);
+          cb(null, `admin-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+        },
+      }),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Admin name' },
+        email: { type: 'string', description: 'Admin email' },
+        isActive: { type: 'boolean', description: 'Active status' },
+        avatar: {
+          type: 'string',
+          format: 'binary',
+          description: 'Avatar image (max 2MB)',
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: 'Update an admin user' })
   @ApiResponse({ status: 200, description: 'Admin user updated.' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateAdminDto,
+    @CurrentUser() admin: AdminJwtPayload,
+    @UploadedFile() avatar?: Express.Multer.File,
   ) {
-    return this.adminService.update(id, dto);
+    if (avatar) {
+      dto.avatar = `/uploads/avatars/${avatar.filename}`;
+    }
+    return this.adminService.update(id, dto, admin.sub);
   }
 
   @Delete(':id')
@@ -98,8 +138,12 @@ export class AdminController {
   @Permissions(DefaultPermissions.ADMIN_DELETE)
   @ApiOperation({ summary: 'Delete an admin user' })
   @ApiResponse({ status: 200, description: 'Admin user deleted.' })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminService.remove(id);
+  @ApiResponse({ status: 400, description: 'Cannot delete a super admin.' })
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() admin: AdminJwtPayload,
+  ) {
+    return this.adminService.remove(id, admin.sub);
   }
 
   @Post(':id/roles')
@@ -108,6 +152,7 @@ export class AdminController {
   @Permissions(DefaultPermissions.ROLES_MANAGE)
   @ApiOperation({ summary: 'Assign roles to an admin user' })
   @ApiResponse({ status: 200, description: 'Roles assigned.' })
+  @ApiResponse({ status: 400, description: 'Cannot modify roles of a super admin.' })
   async assignRoles(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignRolesDto,
@@ -121,6 +166,7 @@ export class AdminController {
   @Permissions(DefaultPermissions.ROLES_MANAGE)
   @ApiOperation({ summary: 'Revoke roles from an admin user' })
   @ApiResponse({ status: 200, description: 'Roles revoked.' })
+  @ApiResponse({ status: 400, description: 'Cannot modify roles of a super admin.' })
   async revokeRoles(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignRolesDto,

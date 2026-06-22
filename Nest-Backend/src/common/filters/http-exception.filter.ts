@@ -20,8 +20,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    let code = 'INTERNAL_ERROR';
-    let details: unknown = undefined;
+    let errors: unknown = undefined;
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -29,26 +28,29 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
         const resp = exceptionResponse as Record<string, unknown>;
-        message = (resp['message'] as string) ?? exception.message;
-        code = (resp['code'] as string) ?? 'HTTP_ERROR';
-        details = resp['details'];
+
+        if (Array.isArray(resp['message'])) {
+          message = 'Validation failed';
+          errors = resp['message'];
+        } else {
+          message = (resp['message'] as string) ?? exception.message;
+          errors = resp['errors'] ?? undefined;
+        }
       } else {
-        message = exceptionResponse;
-        code = 'HTTP_ERROR';
+        message = exceptionResponse as string;
       }
     } else if (exception instanceof QueryFailedError) {
       statusCode = HttpStatus.CONFLICT;
-      code = 'DATABASE_ERROR';
       message = 'A database constraint was violated.';
 
       const dbError = exception as QueryFailedError & { code?: string };
       if (dbError.code === '23505') {
         message = 'A record with the provided value already exists.';
-        code = 'DUPLICATE_ENTRY';
       }
 
       this.logger.error(`DB Error: ${exception.message}`, exception.stack);
     } else if (exception instanceof Error) {
+      message = 'Internal server error';
       this.logger.error(
         `Unhandled error: ${exception.message}`,
         exception.stack,
@@ -57,11 +59,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     response.status(statusCode).json({
       statusCode,
-      code,
       message,
-      details,
+      data: null,
+      ...(errors ? { errors } : {}),
       timestamp: new Date().toISOString(),
-      path: request.url,
     });
   }
 }

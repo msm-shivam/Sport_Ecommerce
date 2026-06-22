@@ -154,4 +154,16 @@ export class CreateProductDto {
   })
   @IsOptional()
   images?: any[];
+
+  @ApiPropertyOptional({
+    example: 0,
+    description: 'Index of the uploaded image to set as primary (default: 0)',
+  })
+  @Transform(({ value }: { value: unknown }) => {
+    if (value === undefined || value === '') return undefined;
+    const num = Number(value);
+    return isNaN(num) ? undefined : num;
+  })
+  @IsOptional()
+  primaryImageIndex?: number;
 }

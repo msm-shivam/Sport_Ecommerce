@@ -36,6 +36,9 @@ export class User extends BaseEntity {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date | undefined;
 
+  @Column({ name: 'avatar', type: 'varchar', length: 500, nullable: true, default: null })
+  avatar: string | null;
+
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
 }

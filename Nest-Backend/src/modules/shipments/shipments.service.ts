@@ -1,10 +1,12 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { plainToInstance } from 'class-transformer';
 import { Shipment } from './entities/shipment.entity';
 import { ShipmentTrackingLog } from './entities/shipment-tracking-log.entity';
 import { ShipmentStatus } from './entities/shipment-status.enum';
+import { ShipmentResponseDto } from './dto/shipment-response.dto';
 import { Order } from '../orders/entities/order.entity';
 import { User } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -23,6 +25,7 @@ export class ShipmentsService {
     private readonly orderRepo: Repository<Order>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -181,39 +184,68 @@ export class ShipmentsService {
       failedDelivery,
     };
   }
-  async findOne(id: string) {
-  const shipment = await this.shipmentRepo
-    .createQueryBuilder('shipment')
-    .leftJoinAndSelect('shipment.order', 'order')
-    .leftJoinAndSelect('order.user', 'customer')
-    .leftJoinAndSelect('shipment.warehouse', 'warehouse')
-    .leftJoinAndSelect('shipment.trackingLogs', 'trackingLogs')
-    .where('shipment.id = :id', { id })
-    .orderBy('trackingLogs.createdAt', 'DESC')
-    .getOne();
+  async findOne(id: string): Promise<ShipmentResponseDto> {
+    const shipment = await this.shipmentRepo
+      .createQueryBuilder('shipment')
+      .leftJoinAndSelect('shipment.order', 'order')
+      .leftJoinAndSelect('order.user', 'customer')
+      .leftJoinAndSelect('shipment.warehouse', 'warehouse')
+      .leftJoinAndSelect('shipment.trackingLogs', 'trackingLogs')
+      .where('shipment.id = :id', { id })
+      .orderBy('trackingLogs.createdAt', 'DESC')
+      .getOne();
 
-  if (!shipment) {
-    throw new NotFoundException('Shipment not found');
-  }
-  console.log("{}{}{}{}{}{}",shipment)
+    if (!shipment) {
+      throw new NotFoundException('Shipment not found');
+    }
 
-  return shipment;
+    return plainToInstance(ShipmentResponseDto, {
+      ...shipment,
+      order: shipment.order
+        ? {
+            id: shipment.order.id,
+            orderNumber: shipment.order.orderNumber,
+            status: shipment.order.status,
+            totalAmount: shipment.order.totalAmount,
+            customerName: shipment.order.user
+              ? `${shipment.order.user.firstName} ${shipment.order.user.lastName}`
+              : null,
+          }
+        : undefined
+    });
 }
+  private async findEntity(id: string): Promise<Shipment> {
+    const shipment = await this.shipmentRepo
+      .createQueryBuilder('shipment')
+      .leftJoinAndSelect('shipment.order', 'order')
+      .leftJoinAndSelect('order.user', 'customer')
+      .leftJoinAndSelect('shipment.warehouse', 'warehouse')
+      .leftJoinAndSelect('shipment.trackingLogs', 'trackingLogs')
+      .where('shipment.id = :id', { id })
+      .getOne();
+    if (!shipment) throw new NotFoundException('Shipment not found');
+    return shipment;
+  }
+
   async updateStatus(
     id: string,
     dto: UpdateShipmentStatusDto,
     changedBy: string,
   ) {
-    const shipment = await this.findOne(id);
+    const shipment = await this.findEntity(id);
 
     if (dto.status) {
       shipment.status = dto.status;
 
-      if (dto.status === ShipmentStatus.OUT_FOR_DELIVERY) {
+      if (dto.status === ShipmentStatus.OUT_FOR_DELIVERY && !shipment.dispatchedAt) {
         shipment.dispatchedAt = new Date();
       }
       if (dto.status === ShipmentStatus.DELIVERED) {
         shipment.deliveredAt = new Date();
+      }
+      if (dto.status === ShipmentStatus.PENDING || dto.status === ShipmentStatus.PACKED) {
+        shipment.dispatchedAt = null;
+        shipment.deliveredAt = null;
       }
 
       await this.createLog(id, dto.status, dto.notes ?? null, changedBy);
@@ -237,9 +269,38 @@ export class ShipmentsService {
       );
     }
 
+    const freshLogs = await this.logRepo.find({
+      where: { shipmentId: id },
+      order: { createdAt: 'DESC' },
+    });
+
     return {
       message: 'Shipment status updated successfully.',
-      data: shipment,
+      data: plainToInstance(ShipmentResponseDto, {
+        ...shipment,
+        trackingLogs: freshLogs,
+        order: shipment.order
+          ? {
+              id: shipment.order.id,
+              orderNumber: shipment.order.orderNumber,
+              status: shipment.order.status,
+              totalAmount: shipment.order.totalAmount,
+              customerName: shipment.order.user
+                ? `${shipment.order.user.firstName} ${shipment.order.user.lastName}`
+                : null,
+            }
+          : undefined,
+        warehouse: shipment.warehouse
+          ? {
+              id: shipment.warehouse.id,
+              name: shipment.warehouse.name,
+              code: shipment.warehouse.code,
+              city: shipment.warehouse.city,
+              state: shipment.warehouse.state,
+              country: shipment.warehouse.country,
+            }
+          : undefined,
+      }),
     };
   }
 
@@ -294,7 +355,10 @@ export class ShipmentsService {
     note: string | null,
     changedBy: string | null,
   ) {
-    const log = this.logRepo.create({ shipmentId, status, note, changedBy });
-    return this.logRepo.save(log);
+    await this.dataSource.query(
+      `INSERT INTO shipment_tracking_logs (id, shipment_id, status, note, changed_by, created_at, updated_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW(), NOW())`,
+      [shipmentId, status, note, changedBy],
+    );
   }
 }

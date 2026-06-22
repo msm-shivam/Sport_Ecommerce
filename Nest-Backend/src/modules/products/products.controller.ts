@@ -36,7 +36,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { DefaultPermissions } from '../../common/constants/roles.constants';
 import { ApiPaginatedResponse } from '../../common/decorators/api-paginated-response.decorator';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { CurrentAdmin } from 'src/common/decorators/current-admin.decorator';
 
@@ -51,13 +51,14 @@ export class ProductsController {
 
   @Post()
   @UseInterceptors(
-    FilesInterceptor('images', 5, {
+    AnyFilesInterceptor({
       storage: diskStorage({
         destination: './uploads/products',
         filename: (req, file, cb) => {
           cb(null, `${Date.now()}-${file.originalname}`);
         },
       }),
+      limits: { files: 5 },
     }),
   )
   @ApiConsumes('multipart/form-data')
@@ -66,9 +67,34 @@ export class ProductsController {
   @ApiOperation({
     summary: 'Create a new product',
     description:
-      'Creates a new product with optional collections, tags, and up to 5 image uploads. Slug is auto-generated from name if not provided.',
+      'Creates a new product with optional collections, tags, and up to 5 image uploads (field names: image or images). Slug is auto-generated from name if not provided.',
   })
-  @ApiBody({ type: CreateProductDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        brandId: { type: 'string', format: 'uuid' },
+        categoryId: { type: 'string', format: 'uuid' },
+        subCategoryId: { type: 'string', format: 'uuid' },
+        slug: { type: 'string' },
+        skuPrefix: { type: 'string' },
+        shortDescription: { type: 'string' },
+        description: { type: 'string' },
+        status: { type: 'string', enum: ['DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED'] },
+        metaTitle: { type: 'string' },
+        metaDescription: { type: 'string' },
+        metaKeywords: { type: 'string' },
+        isFeatured: { type: 'boolean' },
+        isActive: { type: 'boolean' },
+        collectionIds: { type: 'string', description: 'JSON array or comma-separated UUIDs' },
+        tagIds: { type: 'string', description: 'JSON array or comma-separated UUIDs' },
+        image: { type: 'string', format: 'binary', description: 'Single image' },
+        images: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Multiple images (max 5 total across image + images)' },
+        primaryImageIndex: { type: 'number', description: 'Index of uploaded image to set as primary (default: 0)' },
+      },
+    },
+  })
   @ApiResponse({
     status: 201,
     description: 'Product created successfully.',
@@ -111,13 +137,14 @@ export class ProductsController {
 
   @Patch(':id')
   @UseInterceptors(
-    FilesInterceptor('images', 5, {
+    AnyFilesInterceptor({
       storage: diskStorage({
         destination: './uploads/products',
         filename: (req, file, cb) => {
           cb(null, `${Date.now()}-${file.originalname}`);
         },
       }),
+      limits: { files: 5 },
     }),
   )
   @ApiConsumes('multipart/form-data')
@@ -126,9 +153,34 @@ export class ProductsController {
   @ApiOperation({
     summary: 'Update a product',
     description:
-      'Update product details and optionally upload up to 5 images (adds to existing images). Does not modify collections or tags.',
+      'Update product details and optionally upload up to 5 images (field names: image or images). Adds to existing images.',
   })
-  @ApiBody({ type: UpdateProductDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        brandId: { type: 'string', format: 'uuid' },
+        categoryId: { type: 'string', format: 'uuid' },
+        subCategoryId: { type: 'string', format: 'uuid' },
+        slug: { type: 'string' },
+        skuPrefix: { type: 'string' },
+        shortDescription: { type: 'string' },
+        description: { type: 'string' },
+        status: { type: 'string', enum: ['DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED'] },
+        metaTitle: { type: 'string' },
+        metaDescription: { type: 'string' },
+        metaKeywords: { type: 'string' },
+        isFeatured: { type: 'boolean' },
+        isActive: { type: 'boolean' },
+        collectionIds: { type: 'string', description: 'JSON array or comma-separated UUIDs' },
+        tagIds: { type: 'string', description: 'JSON array or comma-separated UUIDs' },
+        image: { type: 'string', format: 'binary', description: 'Single image' },
+        images: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Multiple images (max 5 total)' },
+        primaryImageIndex: { type: 'number', description: 'Index of uploaded image to set as primary (default: 0)' },
+      },
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Product updated successfully.',
@@ -308,7 +360,7 @@ export class ProductsController {
   @ApiOperation({
     summary: 'Add an image to a product',
     description:
-      'Adds a new image to a product. Only one image can be primary per product.',
+      'Adds a new image to a product by URL. Only one image can be primary per product.',
   })
   @ApiResponse({
     status: 201,
