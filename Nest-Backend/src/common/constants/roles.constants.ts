@@ -26,6 +26,7 @@ export enum DefaultPermissions {
   INVENTORY_CREATE = 'inventory.create',
   INVENTORY_VIEW = 'inventory.view',
   INVENTORY_UPDATE = 'inventory.update',
+  INVENTORY_DELETE = 'inventory.delete',
   INVENTORY_ADJUST = 'inventory.adjust',
   // Order
   ORDER_VIEW = 'order.view',

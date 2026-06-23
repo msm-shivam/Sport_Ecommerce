@@ -117,7 +117,7 @@ export class InventoryController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @Permissions(DefaultPermissions.INVENTORY_UPDATE)
+  @Permissions(DefaultPermissions.INVENTORY_DELETE)
   @ApiOperation({ summary: 'Delete inventory record' })
   @ApiResponse({ status: 200, description: 'Inventory deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Inventory not found.' })

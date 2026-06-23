@@ -50,48 +50,56 @@ export class AdminAuthService {
     });
 
     if (!admin) {
-      // await this.auditLogService.log({
-      //   userId: null,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'ADMIN',
-      //   entityId: null,
-      //   newValues: { email: dto.email, reason: 'Admin not found' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: null,
+        action: 'LOGIN_FAILED',
+        entityType: 'ADMIN',
+        entityId: null,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Admin not found' },
+      }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
     }
     if (!admin.isActive) {
-      // await this.auditLogService.log({
-      //   userId: admin.id,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'ADMIN',
-      //   entityId: admin.id,
-      //   newValues: { email: dto.email, reason: 'Account disabled' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: admin.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'ADMIN',
+        entityId: admin.id,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Account disabled' },
+      }).catch(() => {});
       throw new ForbiddenException(AuthMessages.ACCOUNT_DISABLED);
     }
 
     const valid = await comparePassword(dto.password, admin.passwordHash);
     if (!valid) {
-      // await this.auditLogService.log({
-      //   userId: admin.id,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'ADMIN',
-      //   entityId: admin.id,
-      //   newValues: { email: dto.email, reason: 'Invalid password' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: admin.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'ADMIN',
+        entityId: admin.id,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Invalid password' },
+      }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
     }
 
     await this.adminRepo.update(admin.id, { lastLoginAt: new Date() });
 
     const tokens = await this.generateAdminTokens(admin, ipAddress, userAgent);
-    //  await this.auditLogService.log({
-    //   userId: admin.id,
-    //   action: 'LOGIN',
-    //   entityType: 'ADMIN',
-    //   entityId: admin.id,
-    //   newValues: { lastLoginAt: admin.lastLoginAt,email:admin.email,name:admin.name },
-    // });
+    await this.auditLogService.log({
+      userId: admin.id,
+      action: 'LOGIN',
+      entityType: 'ADMIN',
+      entityId: admin.id,
+      ipAddress,
+      userAgent,
+      newValues: { lastLoginAt:admin.lastLoginAt,email:admin.email,name:admin.name },
+    }).catch(() => {});
     return { message: AuthMessages.LOGIN_SUCCESS, data: tokens };
   }
 
@@ -126,11 +134,28 @@ export class AdminAuthService {
     });
 
     if (!admin || !admin.isActive) {
+      await this.auditLogService.log({
+        userId: payload.sub,
+        action: 'REFRESH_TOKEN_FAILED',
+        entityType: 'ADMIN',
+        entityId: payload.sub,
+        ipAddress,
+        userAgent,
+        newValues: { reason: 'Account disabled or not found' },
+      }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.ACCOUNT_DISABLED);
     }
 
     await this.adminSessionRepo.remove(session);
     const tokens = await this.generateAdminTokens(admin, ipAddress, userAgent);
+    await this.auditLogService.log({
+      userId: admin.id,
+      action: 'REFRESH_TOKEN',
+      entityType: 'ADMIN',
+      entityId: admin.id,
+      ipAddress,
+      userAgent,
+    }).catch(() => {});
     return { message: AuthMessages.TOKEN_REFRESHED, data: tokens };
   }
 

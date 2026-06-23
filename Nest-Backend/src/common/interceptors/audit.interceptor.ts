@@ -4,15 +4,29 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditLogService } from '../../modules/security-compliance/services/audit-log.service';
+import { SKIP_AUDIT_LOG_KEY } from '../decorators/skip-audit-log.decorator';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
-  constructor(private readonly auditLogService: AuditLogService) {}
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly reflector: Reflector,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const skipAudit =
+      this.reflector.getAllAndOverride<boolean>(SKIP_AUDIT_LOG_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+    if (skipAudit) {
+      return next.handle();
+    }
+
     const request = context.switchToHttp().getRequest();
     const { method, ip, headers, params, route } = request;
     const user = request.user as { sub?: string } | undefined;

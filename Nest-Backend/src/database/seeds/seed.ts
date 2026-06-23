@@ -97,6 +97,7 @@ const ROLE_PERMISSIONS: Record<DefaultRoles, DefaultPermissions[]> = {
     DefaultPermissions.INVENTORY_CREATE,
     DefaultPermissions.INVENTORY_VIEW,
     DefaultPermissions.INVENTORY_UPDATE,
+    DefaultPermissions.INVENTORY_DELETE,
     DefaultPermissions.INVENTORY_ADJUST,
     DefaultPermissions.INVENTORY_RECEIVE,
     DefaultPermissions.SUPPLIER_VIEW,

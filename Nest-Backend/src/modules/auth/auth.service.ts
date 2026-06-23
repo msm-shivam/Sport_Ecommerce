@@ -168,53 +168,53 @@ export class AuthService {
     });
 
     if (!user) {
-      // await this.auditLogService.log({
-      //   userId: null,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'auth',
-      //   entityId: null,
-      //   ipAddress,
-      //   userAgent,
-      //   newValues: { email: dto.email, reason: 'User not found' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: null,
+        action: 'LOGIN_FAILED',
+        entityType: 'auth',
+        entityId: null,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'User not found' },
+      }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
     }
     if (!user.isActive) {
-      // await this.auditLogService.log({
-      //   userId: user.id,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'auth',
-      //   entityId: user.id,
-      //   ipAddress,
-      //   userAgent,
-      //   newValues: { email: dto.email, reason: 'Account disabled' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: user.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'auth',
+        entityId: user.id,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Account disabled' },
+      }).catch(() => {});
       throw new ForbiddenException(AuthMessages.ACCOUNT_DISABLED);
     }
     if (!user.isEmailVerified) {
-      // await this.auditLogService.log({
-      //   userId: user.id,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'auth',
-      //   entityId: user.id,
-      //   ipAddress,
-      //   userAgent,
-      //   newValues: { email: dto.email, reason: 'Email not verified' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: user.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'auth',
+        entityId: user.id,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Email not verified' },
+      }).catch(() => {});
       throw new ForbiddenException(AuthMessages.EMAIL_NOT_VERIFIED);
     }
 
     const valid = await comparePassword(dto.password, user.passwordHash);
     if (!valid) {
-      // await this.auditLogService.log({
-      //   userId: user.id,
-      //   action: 'LOGIN_FAILED',
-      //   entityType: 'auth',
-      //   entityId: user.id,
-      //   ipAddress,
-      //   userAgent,
-      //   newValues: { email: dto.email, reason: 'Invalid password' },
-      // }).catch(() => {});
+      await this.auditLogService.log({
+        userId: user.id,
+        action: 'LOGIN_FAILED',
+        entityType: 'auth',
+        entityId: user.id,
+        ipAddress,
+        userAgent,
+        newValues: { email: dto.email, reason: 'Invalid password' },
+      }).catch(() => {});
       throw new UnauthorizedException(AuthMessages.INVALID_CREDENTIALS);
     }
 
@@ -224,15 +224,15 @@ export class AuthService {
       userAgent,
     );
 
-    // await this.auditLogService.log({
-    //   userId: user.id,
-    //   action: 'LOGIN',
-    //   entityType: 'auth',
-    //   entityId: user.id,
-    //   ipAddress,
-    //   userAgent,
-    //   newValues: { email: dto.email },
-    // }).catch(() => {});
+    await this.auditLogService.log({
+      userId: user.id,
+      action: 'LOGIN',
+      entityType: 'auth',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
+      newValues: { email: dto.email },
+    }).catch(() => {});
 
     return { message: AuthMessages.LOGIN_SUCCESS, data: tokens };
   }
@@ -274,6 +274,14 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
+    await this.auditLogService.log({
+      userId: user.id,
+      action: 'REFRESH_TOKEN',
+      entityType: 'auth',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
+    }).catch(() => {});
     return { message: AuthMessages.TOKEN_REFRESHED, data: tokens };
   }
 

@@ -26,6 +26,7 @@ import { ResendOtpDto } from './dto/resend-otp.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { SkipAuditLog } from '../../common/decorators/skip-audit-log.decorator';
 import { User } from '../users/entities/user.entity';
 
 @ApiTags('Customer Auth')
@@ -78,6 +79,7 @@ export class AuthController {
     return this.authService.resendOtp(dto);
   }
 
+  @SkipAuditLog()
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -89,6 +91,7 @@ export class AuthController {
     return this.authService.login(dto, req.ip, req.headers['user-agent']);
   }
 
+  @SkipAuditLog()
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -106,6 +109,7 @@ export class AuthController {
     );
   }
 
+  @SkipAuditLog()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @Post('logout')

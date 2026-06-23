@@ -21,6 +21,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { SkipAuditLog } from '../../common/decorators/skip-audit-log.decorator';
 import type { AdminJwtPayload } from './interfaces/jwt-payload.interface';
 
 @ApiTags('Admin Auth')
@@ -28,6 +29,7 @@ import type { AdminJwtPayload } from './interfaces/jwt-payload.interface';
 export class AdminAuthController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 
+  @SkipAuditLog()
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -39,6 +41,7 @@ export class AdminAuthController {
     return this.adminAuthService.login(dto, req.ip, req.headers['user-agent']);
   }
 
+  @SkipAuditLog()
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -52,6 +55,7 @@ export class AdminAuthController {
     );
   }
 
+  @SkipAuditLog()
   @UseGuards(AdminJwtGuard)
   @ApiBearerAuth('JWT')
   @Post('logout')

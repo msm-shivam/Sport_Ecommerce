@@ -32,8 +32,9 @@ import { AdminJwtGuard } from '../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { DefaultPermissions } from '../../common/constants/roles.constants';
+import { DefaultPermissions, DefaultRoles } from '../../common/constants/roles.constants';
 import type { AdminJwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Admin — User Management')
@@ -53,8 +54,9 @@ export class AdminController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Roles(DefaultRoles.SUPER_ADMIN)
   @Permissions(DefaultPermissions.ADMIN_CREATE)
-  @ApiOperation({ summary: 'Create a new admin user' })
+  @ApiOperation({ summary: 'Create a new admin user (Super Admin only)' })
   @ApiResponse({ status: 201, description: 'Admin user created.' })
   @ApiResponse({ status: 400, description: 'Email already taken.' })
   async create(@Body() dto: CreateAdminDto) {

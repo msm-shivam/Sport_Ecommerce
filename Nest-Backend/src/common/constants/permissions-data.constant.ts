@@ -73,6 +73,11 @@ export const ALL_PERMISSIONS: PermissionDef[] = [
     module: 'inventory',
   },
   {
+    slug: DefaultPermissions.INVENTORY_DELETE,
+    name: 'Delete Inventory',
+    module: 'inventory',
+  },
+  {
     slug: DefaultPermissions.INVENTORY_ADJUST,
     name: 'Adjust Inventory',
     module: 'inventory',
