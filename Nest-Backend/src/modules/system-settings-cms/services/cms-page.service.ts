@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CmsPage } from '../entities/cms-page.entity';
 import { CmsPageStatus } from '../enums/cms-page-status.enum';
-import type { CreateCmsPageDto } from '../dto/create-cms-page.dto';
-import type { UpdateCmsPageDto } from '../dto/update-cms-page.dto';
+import { CreateCmsPageDto } from '../dto/create-cms-page.dto';
+import { UpdateCmsPageDto } from '../dto/update-cms-page.dto';
+import { CmsPageQueryDto } from '../dto/cms-page-query.dto';
+import { paginate } from '../../../common/utils/pagination.util';
 
 @Injectable()
 export class CmsPageService {
@@ -18,13 +20,22 @@ export class CmsPageService {
     return this.cmsPageRepo.save(page);
   }
 
-  async findAll(page = 1, limit = 20) {
+  async findAll(query: CmsPageQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const where: Record<string, unknown> = {};
+    if (query.status) where.status = query.status;
+    if (query.pageType) where.pageType = query.pageType;
+    if (query.search) where.title = ILike(`%${query.search}%`);
+
     const [data, total] = await this.cmsPageRepo.findAndCount({
+      where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
-    return { data, total, page, limit };
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: string): Promise<CmsPage> {
