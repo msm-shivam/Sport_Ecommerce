@@ -75,7 +75,7 @@ export class AttributesService {
     const [items, total] = await this.attributeRepo.findAndCount({
       where,
       relations: { values: true },
-      order: { sortOrder: 'ASC', name: 'ASC', values: { sortOrder: 'ASC' } },
+      order: { sortOrder: 'ASC', name: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -90,8 +90,9 @@ export class AttributesService {
 
   async findAllWithValues(): Promise<AttributeResponseDto[]> {
     const attributes = await this.attributeRepo.find({
+      where: { isFilterable: true },
       relations: { values: true },
-      order: { sortOrder: 'ASC', name: 'ASC', values: { sortOrder: 'ASC' } },
+      order: { sortOrder: 'ASC', name: 'ASC' },
     });
     return attributes.map((a) => this.toResponse(a));
   }
@@ -140,7 +141,15 @@ export class AttributesService {
   }
 
   async remove(id: string, adminId: string): Promise<{ message: string }> {
-    const attribute = await this.findByIdOrFail(id);
+    const attribute = await this.attributeRepo.findOne({
+      where: { id },
+      withDeleted: true,
+      relations: { values: true },
+    });
+    if (!attribute) {
+      throw new NotFoundException(CatalogMessages.ATTRIBUTE_NOT_FOUND);
+    }
+    await this.attributeValueRepo.remove(attribute.values);
     await this.attributeRepo.remove(attribute);
     // await this.auditLogService.log({
     //   userId: adminId,
