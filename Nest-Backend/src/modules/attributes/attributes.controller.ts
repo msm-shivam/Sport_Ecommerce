@@ -55,6 +55,14 @@ export class AttributesController {
     return this.attributesService.findAll(query);
   }
 
+  @Get('with-values')
+  @HttpCode(HttpStatus.OK)
+  @Permissions(DefaultPermissions.ATTRIBUTE_VIEW)
+  @ApiOperation({ summary: 'Get all attributes with their values (for filters)' })
+  async findAllWithValues() {
+    return this.attributesService.findAllWithValues();
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @Permissions(DefaultPermissions.ATTRIBUTE_VIEW)

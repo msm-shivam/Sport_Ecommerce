@@ -74,7 +74,8 @@ export class AttributesService {
 
     const [items, total] = await this.attributeRepo.findAndCount({
       where,
-      order: { sortOrder: 'ASC', name: 'ASC' },
+      relations: { values: true },
+      order: { sortOrder: 'ASC', name: 'ASC', values: { sortOrder: 'ASC' } },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -85,6 +86,14 @@ export class AttributesService {
       page,
       limit,
     );
+  }
+
+  async findAllWithValues(): Promise<AttributeResponseDto[]> {
+    const attributes = await this.attributeRepo.find({
+      relations: { values: true },
+      order: { sortOrder: 'ASC', name: 'ASC', values: { sortOrder: 'ASC' } },
+    });
+    return attributes.map((a) => this.toResponse(a));
   }
 
   async findOne(id: string): Promise<AttributeResponseDto> {
