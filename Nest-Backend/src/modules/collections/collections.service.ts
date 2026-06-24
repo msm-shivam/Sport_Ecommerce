@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Collection } from './entities/collection.entity';
+import { ProductCollection } from './entities/product-collection.entity';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { CollectionQueryDto } from './dto/collection-query.dto';
@@ -20,6 +21,8 @@ export class CollectionsService {
   constructor(
     @InjectRepository(Collection)
     private readonly collectionRepo: Repository<Collection>,
+    @InjectRepository(ProductCollection)
+    private readonly productCollectionRepo: Repository<ProductCollection>,
   ) {}
 
   async create(
@@ -38,6 +41,15 @@ export class CollectionsService {
     });
 
     const saved = await this.collectionRepo.save(collection);
+
+    if (dto.productIds?.length) {
+      const junctions = dto.productIds.map((productId) =>
+        this.productCollectionRepo.create({ productId, collectionId: saved.id }),
+      );
+      await this.productCollectionRepo.save(junctions);
+    }
+
+    saved.productCount = dto.productIds?.length ?? 0;
     return {
       message: 'Collection created successfully.',
       data: this.toResponse(saved),
@@ -59,6 +71,24 @@ export class CollectionsService {
       take: limit,
     });
 
+    const ids = items.map((c) => c.id);
+    const counts: Record<string, number> = {};
+    if (ids.length) {
+      const rows = await this.productCollectionRepo
+        .createQueryBuilder('pc')
+        .select('pc.collection_id', 'collectionId')
+        .addSelect('COUNT(*)', 'cnt')
+        .where('pc.collection_id IN (:...ids)', { ids })
+        .groupBy('pc.collection_id')
+        .getRawMany<{ collectionId: string; cnt: string }>();
+      for (const row of rows) {
+        counts[row.collectionId] = Number(row.cnt);
+      }
+    }
+    for (const item of items) {
+      item.productCount = counts[item.id] ?? 0;
+    }
+
     return paginate(
       items.map((item) => this.toResponse(item)),
       total,
@@ -69,6 +99,9 @@ export class CollectionsService {
 
   async findOne(id: string): Promise<CollectionResponseDto> {
     const collection = await this.findByIdOrFail(id);
+    collection.productCount = await this.productCollectionRepo.count({
+      where: { collectionId: id },
+    });
     return this.toResponse(collection);
   }
 
@@ -97,6 +130,20 @@ export class CollectionsService {
     if (dto.isActive !== undefined) collection.isActive = dto.isActive;
 
     const saved = await this.collectionRepo.save(collection);
+
+    if (dto.productIds !== undefined) {
+      await this.productCollectionRepo.delete({ collectionId: id });
+      if (dto.productIds.length) {
+        const junctions = dto.productIds.map((productId) =>
+          this.productCollectionRepo.create({ productId, collectionId: id }),
+        );
+        await this.productCollectionRepo.save(junctions);
+      }
+    }
+
+    saved.productCount = dto.productIds !== undefined
+      ? dto.productIds.length
+      : await this.productCollectionRepo.count({ where: { collectionId: id } });
     return {
       message: 'Collection updated successfully.',
       data: this.toResponse(saved),

@@ -1,4 +1,5 @@
 import { Column, DeleteDateColumn, Entity, Index } from 'typeorm';
+import { Expose } from 'class-transformer';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 
 @Entity('collections')
@@ -24,6 +25,9 @@ export class Collection extends BaseEntity {
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
+
+  @Expose()
+  productCount: number = 0;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date | null;

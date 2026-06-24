@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform, Type, plainToInstance } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -176,13 +176,15 @@ export class CreateProductDto {
   })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      try { return JSON.parse(value); } catch { return []; }
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? plainToInstance(VariantInputDto, parsed) : [];
+      } catch { return []; }
     }
     return value;
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => VariantInputDto)
   variants?: VariantInputDto[];
 }

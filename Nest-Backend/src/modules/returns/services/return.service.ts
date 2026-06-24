@@ -20,6 +20,8 @@ import { SchedulePickupDto } from '../dto/schedule-pickup.dto';
 import { ProcessRefundDto } from '../dto/process-refund.dto';
 import { RejectReturnDto } from '../dto/reject-return.dto';
 import { ReturnQueryDto } from '../dto/return-query.dto';
+import { VerifyReturnItemsDto } from '../dto/verify-return-items.dto';
+import { ReturnItemCondition } from '../enums/return-item-condition.enum';
 import { Order } from '../../orders/entities/order.entity';
 import { OrderItem } from '../../orders/entities/order-item.entity';
 import { Inventory } from '../../inventory/entities/inventory.entity';
@@ -534,6 +536,55 @@ export class ReturnService {
     return { message: 'Return marked as received' };
   }
 
+  async verifyItems(
+    returnId: string,
+    adminId: string,
+    dto: VerifyReturnItemsDto,
+  ) {
+    const returnRequest = await this.findOne(returnId);
+    if (returnRequest.status !== ReturnRequestStatus.RECEIVED) {
+      throw new BadRequestException(
+        'Return must be received before verifying items',
+      );
+    }
+
+    const existingItems = await this.returnItemRepo.find({
+      where: { returnRequestId: returnId },
+    });
+
+    for (const incoming of dto.items) {
+      const match = existingItems.find((ei) => ei.id === incoming.itemId);
+      if (!match) {
+        throw new NotFoundException(
+          `Return item ${incoming.itemId} not found in this return`,
+        );
+      }
+      match.condition = incoming.condition;
+    }
+
+    await this.returnItemRepo.save(existingItems);
+
+    const damaged = existingItems.filter(
+      (i) => i.condition === ReturnItemCondition.DAMAGED,
+    );
+
+    await this.createAudit(
+      returnId,
+      adminId,
+      'ITEMS_VERIFIED',
+      `Items verified: ${existingItems.length} total, ${damaged.length} damaged`,
+    );
+
+    return {
+      message: 'Return items verified',
+      data: {
+        totalItems: existingItems.length,
+        damagedItems: damaged.length,
+        refundableItems: existingItems.length - damaged.length,
+      },
+    };
+  }
+
   async processRefund(
     returnId: string,
     adminId: string,
@@ -549,26 +600,49 @@ export class ReturnService {
     const items = await this.returnItemRepo.find({
       where: { returnRequestId: returnId },
     });
+
+    const refundable = items.filter(
+      (i) => i.condition !== ReturnItemCondition.DAMAGED,
+    );
+    const damagedItems = items.filter(
+      (i) => i.condition === ReturnItemCondition.DAMAGED,
+    );
+
+    if (refundable.length === 0) {
+      returnRequest.status = ReturnRequestStatus.REJECTED;
+      returnRequest.notes = returnRequest.notes
+        ? `${returnRequest.notes} | Rejected: All items damaged`
+        : 'Rejected: All items damaged';
+      await this.returnRepo.save(returnRequest);
+      await this.createAudit(
+        returnId,
+        adminId,
+        'RETURN_REJECTED',
+        'All items damaged — refund rejected',
+      );
+      return { message: 'Return rejected — all items are damaged' };
+    }
+
     let totalRefund = 0;
-    for (const item of items) {
+    for (const item of refundable) {
       const orderItem = await this.orderItemRepo.findOne({
         where: { id: item.orderItemId },
       });
       if (orderItem) {
         const refundAmount = dto.amount
-          ? dto.amount / items.length
+          ? dto.amount / refundable.length
           : Number(orderItem.unitPrice) * item.quantity;
         item.refundAmount = refundAmount;
         totalRefund += refundAmount;
       }
     }
-    await this.returnItemRepo.save(items);
+    await this.returnItemRepo.save(refundable);
 
     returnRequest.totalRefundAmount = totalRefund;
     returnRequest.status = ReturnRequestStatus.REFUNDED;
     await this.returnRepo.save(returnRequest);
 
-    for (const item of items) {
+    for (const item of refundable) {
       const orderItem = await this.orderItemRepo.findOne({
         where: { id: item.orderItemId },
       });
@@ -577,12 +651,11 @@ export class ReturnService {
       }
     }
 
-    await this.createAudit(
-      returnId,
-      adminId,
-      'REFUND_PROCESSED',
-      `Refund of ${totalRefund} processed`,
-    );
+    let auditNotes = `Refund of ${totalRefund} processed`;
+    if (damagedItems.length > 0) {
+      auditNotes += ` | ${damagedItems.length} item(s) not refunded (damaged)`;
+    }
+    await this.createAudit(returnId, adminId, 'REFUND_PROCESSED', auditNotes);
 
     if (returnRequest.order?.user?.email) {
       await this.notificationsService.sendTemplatedEmail({
@@ -596,7 +669,12 @@ export class ReturnService {
       });
     }
 
-    return { message: 'Refund processed successfully' };
+    return {
+      message:
+        damagedItems.length > 0
+          ? `Refund of ${totalRefund} processed. ${damagedItems.length} damaged item(s) excluded from refund.`
+          : 'Refund processed successfully',
+    };
   }
 
   async complete(returnId: string, adminId: string) {

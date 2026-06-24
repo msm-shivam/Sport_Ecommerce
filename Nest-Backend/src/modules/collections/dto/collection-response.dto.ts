@@ -9,6 +9,7 @@ export class CollectionResponseDto {
   @Expose() @ApiPropertyOptional() image: string | null;
   @Expose() @ApiPropertyOptional() description: string | null;
   @Expose() @ApiProperty() isActive: boolean;
+  @Expose() @ApiProperty() productCount: number;
   @Expose() @ApiProperty() createdAt: Date;
   @Expose() @ApiProperty() updatedAt: Date;
 }

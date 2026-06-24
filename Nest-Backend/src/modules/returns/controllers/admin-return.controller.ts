@@ -19,6 +19,7 @@ import { ReturnQueryDto } from '../dto/return-query.dto';
 import { SchedulePickupDto } from '../dto/schedule-pickup.dto';
 import { ProcessRefundDto } from '../dto/process-refund.dto';
 import { RejectReturnDto } from '../dto/reject-return.dto';
+import { VerifyReturnItemsDto } from '../dto/verify-return-items.dto';
 import { ReturnService } from '../services/return.service';
 
 @ApiTags('Admin — Returns')
@@ -94,6 +95,16 @@ export class AdminReturnController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.returnService.updateShipmentStatus(id, 'DELIVERED' as any);
+  }
+
+  @Post(':id/verify-items')
+  @Permissions(DefaultPermissions.RETURN_RECEIVE)
+  async verifyItems(
+    @CurrentUser() admin: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: VerifyReturnItemsDto,
+  ) {
+    return this.returnService.verifyItems(id, admin.sub, dto);
   }
 
   @Post(':id/refund')
