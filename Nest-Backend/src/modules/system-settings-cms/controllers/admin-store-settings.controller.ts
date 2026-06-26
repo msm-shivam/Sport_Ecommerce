@@ -14,6 +14,7 @@ import { AdminJwtGuard } from '../../../common/guards/admin-jwt.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { DefaultPermissions } from '../../../common/constants/roles.constants';
+import { Public } from '../../../common/decorators/public.decorator';
 import { StoreSettingsService } from '../services/store-settings.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -32,7 +33,7 @@ export class AdminStoreSettingsController {
   constructor(private readonly storeSettingsService: StoreSettingsService) {}
 
   @Get('store')
-  @Permissions(DefaultPermissions.SETTINGS_VIEW)
+  @Public()
   async getStoreSettings() {
     return this.storeSettingsService.getStoreSettings();
   }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Collection } from './entities/collection.entity';
 import { ProductCollection } from './entities/product-collection.entity';
@@ -15,6 +15,7 @@ import { CollectionResponseDto } from './dto/collection-response.dto';
 import { toSlug } from '../../common/utils/slug.util';
 import { paginate } from '../../common/utils/pagination.util';
 import { CatalogMessages } from '../../common/constants/messages.constants';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class CollectionsService {
@@ -23,6 +24,8 @@ export class CollectionsService {
     private readonly collectionRepo: Repository<Collection>,
     @InjectRepository(ProductCollection)
     private readonly productCollectionRepo: Repository<ProductCollection>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
   ) {}
 
   async create(
@@ -97,12 +100,46 @@ export class CollectionsService {
     );
   }
 
-  async findOne(id: string): Promise<CollectionResponseDto> {
+  async findOne(id: string): Promise<any> {
     const collection = await this.findByIdOrFail(id);
-    collection.productCount = await this.productCollectionRepo.count({
+
+    const junctions = await this.productCollectionRepo.find({
       where: { collectionId: id },
     });
-    return this.toResponse(collection);
+
+    collection.productCount = junctions.length;
+
+    const result = this.toResponse(collection) as any;
+
+    if (junctions.length > 0) {
+      const productIds = junctions.map((j) => j.productId);
+      const products = await this.productRepo.find({
+        where: { id: In(productIds) },
+        relations: { images: true },
+      });
+      result.products = products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        status: p.status,
+        isActive: p.isActive,
+        isFeatured: p.isFeatured,
+        shortDescription: p.shortDescription,
+        brandId: p.brandId,
+        categoryId: p.categoryId,
+        averageRating: p.averageRating,
+        createdAt: p.createdAt,
+        images: (p.images ?? []).map((img) => ({
+          id: img.id,
+          imageUrl: img.imageUrl,
+          isPrimary: img.isPrimary,
+        })),
+      }));
+    } else {
+      result.products = [];
+    }
+
+    return result;
   }
 
   async update(
