@@ -26,7 +26,10 @@
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
     "seed:users": "ts-node -r tsconfig-paths/register src/database/seeds/seed-users.ts",
     "seed:orders": "ts-node -r tsconfig-paths/register src/database/seeds/seed-orders.ts",
-    "seed:all": "npm run seed && npm run seed:users && npm run seed:orders"
+    "seed:finance": "ts-node -r tsconfig-paths/register src/database/seeds/seed-finance.ts",
+    "seed:support": "ts-node -r tsconfig-paths/register src/database/seeds/seed-support.ts",
+    "seed:reviews": "ts-node -r tsconfig-paths/register src/database/seeds/seed-reviews.ts",
+    "seed:all": "npm run seed && npm run seed:users && npm run seed:orders && npm run seed:finance && npm run seed:support && npm run seed:reviews"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.4",

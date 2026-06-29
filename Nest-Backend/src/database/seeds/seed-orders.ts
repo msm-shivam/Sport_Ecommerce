@@ -246,11 +246,11 @@ async function seed() {
       daysAfterSignup: 5,
       items: [{ productId: U.prod1, variantIdx: 1, qty: 1 }, { productId: U.prod5, variantIdx: 0, qty: 2 }],
       createShipment: true, deliveredAfterDays: 5 },
-    // Ahmed: second order 80 days ago → delivered
+    // Ahmed: second order 80 days ago → delivered (with return)
     { userEmail: 'ahmed@example.com', addrIdx: 0, orderStatus: 'DELIVERED', paymentStatus: 'PAID',
       daysAfterSignup: 15,
       items: [{ productId: U.prod3, variantIdx: 0, qty: 1 }],
-      createShipment: true, deliveredAfterDays: 4 },
+      createShipment: true, deliveredAfterDays: 4, createReturn: true, returnReason: 'WRONG_SIZE' },
     // Sara: signed up ~60 days ago → ordered 50 days ago → out for delivery
     { userEmail: 'sara@example.com', addrIdx: 1, orderStatus: 'OUT_FOR_DELIVERY', paymentStatus: 'PAID',
       daysAfterSignup: 10,
@@ -261,11 +261,11 @@ async function seed() {
       daysAfterSignup: 20,
       items: [{ productId: U.prod6, variantIdx: 0, qty: 1 }],
       createShipment: false, deliveredAfterDays: null },
-    // Omar: signed up ~30 days ago → ordered 25 days ago → delivered
+    // Omar: signed up ~30 days ago → ordered 25 days ago → delivered (with return)
     { userEmail: 'omar@example.com', addrIdx: 2, orderStatus: 'DELIVERED', paymentStatus: 'PAID',
       daysAfterSignup: 5,
       items: [{ productId: U.prod4, variantIdx: 0, qty: 2 }, { productId: U.prod6, variantIdx: 1, qty: 1 }],
-      createShipment: true, deliveredAfterDays: 4 },
+      createShipment: true, deliveredAfterDays: 4, createReturn: true, returnReason: 'DEFECTIVE' },
     // Omar: second order 2 days ago → pending (recent)
     { userEmail: 'omar@example.com', addrIdx: 2, orderStatus: 'PENDING', paymentStatus: 'PENDING',
       daysAfterSignup: 28,
