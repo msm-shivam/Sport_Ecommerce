@@ -339,6 +339,11 @@ export class ProductsService {
     if (dto.isFeatured !== undefined) product.isFeatured = dto.isFeatured;
     if (dto.isActive !== undefined) product.isActive = dto.isActive;
 
+    // Unset loaded relation objects so TypeORM uses the FK column values (not stale relations)
+    if (dto.brandId !== undefined) product.brand = undefined as any;
+    if (dto.categoryId !== undefined) product.category = undefined as any;
+    if (dto.subCategoryId !== undefined) product.subCategory = undefined as any;
+
     await this.productRepo.save(product);
 
     // Replace collections if provided
