@@ -1,4 +1,5 @@
 import { Entity, Column, Index } from 'typeorm';
+import { Expose } from 'class-transformer';
 import { BaseEntity } from '../../../shared/entities/base.entity';
 
 export enum EmailTemplateCode {
@@ -32,21 +33,27 @@ export enum EmailTemplateCode {
 @Entity('email_templates')
 @Index(['code'], { unique: true })
 export class EmailTemplate extends BaseEntity {
+  @Expose()
   @Column({ length: 100 })
   name: string;
 
+  @Expose()
   @Column({ length: 100, unique: true })
   code: string;
 
+  @Expose()
   @Column({ length: 255 })
   subject: string;
 
+  @Expose()
   @Column({ type: 'text' })
   body: string;
 
+  @Expose()
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @Expose()
   @Column({ type: 'text', nullable: true })
   description: string;
 }
