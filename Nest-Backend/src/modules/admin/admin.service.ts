@@ -68,14 +68,26 @@ export class AdminService {
     return { message: 'Admin user created successfully.', data };
   }
 
-  async findAll(): Promise<AdminResponseDto[]> {
+  async findAll(): Promise<any> {
     const admins = await this.adminRepo.find({
       relations: { roles: true },
       order: { createdAt: 'DESC' },
     });
-    return admins.map((a) =>
-      plainToInstance(AdminResponseDto, a, { excludeExtraneousValues: true }),
-    );
+
+    const [totalUsers, activeUsers, inactiveUsers] = await Promise.all([
+      this.adminRepo.count(),
+      this.adminRepo.count({ where: { isActive: true } }),
+      this.adminRepo.count({ where: { isActive: false } }),
+    ]);
+
+    return {
+      data: admins.map((a) =>
+        plainToInstance(AdminResponseDto, a, { excludeExtraneousValues: true }),
+      ),
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+    };
   }
 
   async findById(id: string): Promise<AdminResponseDto> {

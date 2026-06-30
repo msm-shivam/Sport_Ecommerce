@@ -236,11 +236,21 @@ export class SupportService {
       .take(limit)
       .getManyAndCount();
 
+    const [openTickets, inProgress, resolved, closed] = await Promise.all([
+      this.ticketRepo.count({ where: { status: TicketStatus.OPEN } }),
+      this.ticketRepo.count({ where: { status: TicketStatus.IN_PROGRESS } }),
+      this.ticketRepo.count({ where: { status: TicketStatus.RESOLVED } }),
+      this.ticketRepo.count({ where: { status: TicketStatus.CLOSED } }),
+    ]);
+
     return {
       data: plainToInstance(TicketResponseDto, data),
       total,
       page,
       limit,
+      openTickets,
+      inProgress,
+      resolvedClosed: resolved + closed,
     };
   }
 

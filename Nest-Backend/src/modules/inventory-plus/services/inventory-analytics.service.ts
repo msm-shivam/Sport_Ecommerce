@@ -108,7 +108,7 @@ export class InventoryAnalyticsService {
     return result;
   }
 
-  async getSlowMoving(): Promise<any[]> {
+  async getSlowMoving(): Promise<any> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -118,6 +118,9 @@ export class InventoryAnalyticsService {
     });
 
     const result: any[] = [];
+    let totalValue = 0;
+    let totalStockUnits = 0;
+
     for (const inv of inventories) {
       const recentMovement = await this.auditRepository.findOne({
         where: {
@@ -126,6 +129,9 @@ export class InventoryAnalyticsService {
         },
         order: { createdAt: 'DESC' },
       });
+
+      totalStockUnits += inv.quantity;
+      totalValue += (inv.variant?.costPrice ?? 0) * inv.quantity;
 
       if (!recentMovement || recentMovement.createdAt < thirtyDaysAgo) {
         result.push({
@@ -142,7 +148,14 @@ export class InventoryAnalyticsService {
       }
     }
 
-    return result.slice(0, 20);
+    const items = result.slice(0, 20);
+
+    return {
+      items,
+      totalInventoryValue: totalValue,
+      itemsAtRisk: result.length,
+      totalStockUnits,
+    };
   }
 
   async getStockValue(): Promise<any> {

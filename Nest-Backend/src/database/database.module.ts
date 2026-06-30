@@ -79,6 +79,7 @@ import { EmailTemplate } from '../modules/email-notifications/entities/email-tem
 import { EmailTemplate as NtfyEmailTemplate } from '../modules/notifications/entities/email-template.entity';
 import { NotificationPreference } from '../modules/notifications/entities/notification-preference.entity';
 import { NotificationLog } from '../modules/notifications/entities/notification-log.entity';
+import { AdminNotification } from '../modules/notifications/entities/admin-notification.entity';
 import { EmailPreference } from '../modules/email-notifications/entities/email-preference.entity';
 import { EmailLog } from '../modules/email-notifications/entities/email-log.entity';
 import { EmailCampaign } from '../modules/email-notifications/entities/email-campaign.entity';
@@ -198,6 +199,7 @@ import { StoreSetting } from '../modules/system-settings-cms/entities/store-sett
             NtfyEmailTemplate,
             NotificationPreference,
             NotificationLog,
+            AdminNotification,
             EmailPreference,
             EmailLog,
             EmailCampaign,

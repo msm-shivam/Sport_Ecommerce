@@ -93,12 +93,24 @@ export class CategoriesService {
       take: limit,
     });
 
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [totalCategories, activeCategories, inactiveCategories] =
+      await Promise.all([
+        this.categoryRepo.count(),
+        this.categoryRepo.count({ where: { isActive: true } }),
+        this.categoryRepo.count({ where: { isActive: false } }),
+      ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalCategories,
+      activeCategories,
+      inactiveCategories,
+    };
   }
 
   async findOne(id: string): Promise<CategoryResponseDto> {

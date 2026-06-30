@@ -92,13 +92,24 @@ export class BrandsService {
       take: limit,
     });
 
-    
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [totalBrands, activeBrands, inactiveBrands] =
+      await Promise.all([
+        this.brandRepo.count(),
+        this.brandRepo.count({ where: { isActive: true } }),
+        this.brandRepo.count({ where: { isActive: false } }),
+      ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalBrands,
+      activeBrands,
+      inactiveBrands,
+    };
   }
 
   async findOne(id: string): Promise<BrandResponseDto> {

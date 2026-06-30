@@ -92,12 +92,24 @@ export class CollectionsService {
       item.productCount = counts[item.id] ?? 0;
     }
 
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [totalCollections, activeCollections, inactiveCollections] =
+      await Promise.all([
+        this.collectionRepo.count(),
+        this.collectionRepo.count({ where: { isActive: true } }),
+        this.collectionRepo.count({ where: { isActive: false } }),
+      ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalCollections,
+      activeCollections,
+      inactiveCollections,
+    };
   }
 
   async findOne(id: string): Promise<any> {

@@ -149,9 +149,32 @@ export class InventoryService {
 
     const [items, total] = await qb.getManyAndCount();
 
+    const [totalSKUs, lowStock, outOfStock, totalValueResult] =
+      await Promise.all([
+        this.inventoryRepo.count(),
+        this.inventoryRepo
+          .createQueryBuilder('inv')
+          .where(
+            'inv.available_quantity > 0 AND inv.available_quantity <= inv.low_stock_threshold',
+          )
+          .getCount(),
+        this.inventoryRepo.count({ where: { availableQuantity: 0 } as any }),
+        this.inventoryRepo
+          .createQueryBuilder('inv')
+          .leftJoin('inv.variant', 'variant')
+          .select('SUM(inv.quantity * variant.cost_price)', 'totalValue')
+          .getRawOne<{ totalValue: string | null }>(),
+      ]);
+
+    const totalValue = Number(totalValueResult?.totalValue ?? 0);
+
     return {
       items: items.map((inv) => this.toResponse(inv)),
       total,
+      totalSKUs,
+      lowStock,
+      outOfStock,
+      totalValue,
     };
   }
 

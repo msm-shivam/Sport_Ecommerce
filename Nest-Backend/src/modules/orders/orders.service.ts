@@ -323,12 +323,30 @@ export class OrdersService {
       },
     });
 
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [totalOrders, pending, processing, shipped, delivered, cancelled] =
+      await Promise.all([
+        this.orderRepo.count(),
+        this.orderRepo.count({ where: { status: OrderStatus.PENDING } }),
+        this.orderRepo.count({ where: { status: OrderStatus.PROCESSING } }),
+        this.orderRepo.count({ where: { status: OrderStatus.SHIPPED } }),
+        this.orderRepo.count({ where: { status: OrderStatus.DELIVERED } }),
+        this.orderRepo.count({ where: { status: OrderStatus.CANCELLED } }),
+      ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalOrders,
+      pending,
+      processing,
+      shipped,
+      delivered,
+      cancelled,
+    };
   }
 
   async getOrder(orderId: string): Promise<OrderResponseDto> {

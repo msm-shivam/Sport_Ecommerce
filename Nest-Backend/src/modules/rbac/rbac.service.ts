@@ -170,10 +170,20 @@ export class RbacService {
     return [...ALL_PERMISSIONS];
   }
 
-  async findAllPermissions(): Promise<Permission[]> {
-    return this.permissionRepo.find({
+  async findAllPermissions(): Promise<any> {
+    const permissions = await this.permissionRepo.find({
       order: { module: 'ASC', slug: 'ASC' },
     });
+
+    const moduleSet = new Set(permissions.map((p) => p.module));
+    const modules = [...moduleSet];
+
+    return {
+      data: permissions,
+      totalPermissions: permissions.length,
+      totalModules: modules.length,
+      modules,
+    };
   }
 
   async findPermissionById(id: string): Promise<Permission> {

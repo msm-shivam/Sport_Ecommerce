@@ -80,12 +80,30 @@ export class AttributesService {
       take: limit,
     });
 
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [
+      totalAttributes,
+      filterable,
+      required,
+      nonFilterable,
+    ] = await Promise.all([
+      this.attributeRepo.count(),
+      this.attributeRepo.count({ where: { isFilterable: true } }),
+      this.attributeRepo.count({ where: { isRequired: true } }),
+      this.attributeRepo.count({ where: { isFilterable: false } }),
+    ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalAttributes,
+      filterable,
+      required,
+      nonFilterable,
+    };
   }
 
   async findAllWithValues(): Promise<AttributeResponseDto[]> {

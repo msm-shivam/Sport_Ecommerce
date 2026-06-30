@@ -88,12 +88,30 @@ export class SubCategoriesService {
       take: limit,
     });
 
-    return paginate(
-      items.map((item) => this.toResponse(item)),
-      total,
-      page,
-      limit,
-    );
+    const [totalSubCategories, activeSubCategories, inactiveSubCategories, categoriesCovered] =
+      await Promise.all([
+        this.subCategoryRepo.count(),
+        this.subCategoryRepo.count({ where: { isActive: true } }),
+        this.subCategoryRepo.count({ where: { isActive: false } }),
+        this.subCategoryRepo
+          .createQueryBuilder('sc')
+          .select('COUNT(DISTINCT sc.category_id)', 'count')
+          .getRawOne()
+          .then((r) => parseInt(r?.count ?? '0', 10)),
+      ]);
+
+    return {
+      ...paginate(
+        items.map((item) => this.toResponse(item)),
+        total,
+        page,
+        limit,
+      ),
+      totalSubCategories,
+      activeSubCategories,
+      inactiveSubCategories,
+      categoriesCovered,
+    };
   }
 
   async findOne(id: string): Promise<SubCategoryResponseDto> {

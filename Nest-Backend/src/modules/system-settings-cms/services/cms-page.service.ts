@@ -35,7 +35,19 @@ export class CmsPageService {
       skip: (page - 1) * limit,
       take: limit,
     });
-    return paginate(data, total, page, limit);
+
+    const [totalPages, published, draft] = await Promise.all([
+      this.cmsPageRepo.count(),
+      this.cmsPageRepo.count({ where: { status: CmsPageStatus.PUBLISHED } }),
+      this.cmsPageRepo.count({ where: { status: CmsPageStatus.DRAFT } }),
+    ]);
+
+    return {
+      ...paginate(data, total, page, limit),
+      totalPages,
+      published,
+      draft,
+    };
   }
 
   async findOne(id: string): Promise<CmsPage> {

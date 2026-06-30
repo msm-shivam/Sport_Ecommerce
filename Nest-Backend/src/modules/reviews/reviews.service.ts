@@ -117,7 +117,21 @@ export class ReviewsService {
       relations: { user: true, product: true, images: true },
       order: { createdAt: 'DESC' },
     });
-    return reviews.map((r) => this.toResponse(r));
+
+    const totalReviews = reviews.length;
+    const averageRating =
+      totalReviews > 0
+        ? Math.round(
+            (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews) *
+              100,
+          ) / 100
+        : 0;
+
+    return {
+      reviews: reviews.map((r) => this.toResponse(r)),
+      totalReviews,
+      averageRating,
+    };
   }
 
   async update(id: string, userId: string, dto: UpdateReviewDto) {

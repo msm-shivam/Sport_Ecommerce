@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Inventory } from '../../inventory/entities/inventory.entity';
 import { ProductVariant } from '../../product-variants/entities/product-variant.entity';
 import { StockAdjustment } from '../entities/stock-adjustment.entity';
@@ -104,6 +104,16 @@ export class InventoryPlusService {
       : [];
     const variantMap = new Map(variants.map((v) => [v.id, v.sku]));
 
+    const [activeAlerts, critical, warning] = await Promise.all([
+      this.alertRepository.count({ where: { isResolved: false } }),
+      this.alertRepository.count({
+        where: { isResolved: false, alertType: 'OUT_OF_STOCK' },
+      }),
+      this.alertRepository.count({
+        where: { isResolved: false, alertType: 'LOW_STOCK' },
+      }),
+    ]);
+
     return {
       items: items.map((a) => ({
         id: a.id,
@@ -118,6 +128,9 @@ export class InventoryPlusService {
         createdAt: a.createdAt,
       })),
       total,
+      activeAlerts,
+      critical,
+      warning,
     };
   }
 
@@ -149,6 +162,28 @@ export class InventoryPlusService {
       : [];
     const variantMap = new Map(variants.map((v) => [v.id, v.sku]));
 
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [todayMovements, stockIn, stockOut, netChangeResult] =
+      await Promise.all([
+        this.auditRepository.count({
+          where: { createdAt: MoreThanOrEqual(todayStart) } as any,
+        }),
+        this.auditRepository.count({
+          where: { actionType: AuditActionType.STOCK_IN } as any,
+        }),
+        this.auditRepository.count({
+          where: { actionType: AuditActionType.STOCK_OUT } as any,
+        }),
+        this.auditRepository
+          .createQueryBuilder('audit')
+          .select('COALESCE(SUM(ABS(audit.after_quantity - audit.before_quantity)), 0)', 'net')
+          .getRawOne<{ net: string | null }>(),
+      ]);
+
+    const netChange = Number(netChangeResult?.net ?? 0);
+
     return {
       items: items.map((m) => ({
         id: m.id,
@@ -166,6 +201,10 @@ export class InventoryPlusService {
         createdAt: m.createdAt,
       })),
       total,
+      todayMovements,
+      stockIn,
+      stockOut,
+      netChange,
     };
   }
 

@@ -123,7 +123,7 @@ export class UsersService {
     dateTo?: string;
     sortBy?: string;
     sortOrder?: 'ASC' | 'DESC';
-  }): Promise<{ data: UserResponseDto[]; total: number; page: number; limit: number; totalPages: number }> {
+  }): Promise<any> {
     const { page = 1, limit = 20, search, isActive, isEmailVerified, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'DESC' } = query;
 
     const where: any = {};
@@ -152,7 +152,35 @@ export class UsersService {
       plainToInstance(UserResponseDto, u, { excludeExtraneousValues: true }),
     );
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [totalCustomers, activeCustomers, verifiedCustomers, newThisMonth, newToday] =
+      await Promise.all([
+        this.userRepo.count(),
+        this.userRepo.count({ where: { isActive: true } }),
+        this.userRepo.count({ where: { isEmailVerified: true } }),
+        this.userRepo.count({
+          where: { createdAt: MoreThanOrEqual(monthStart) as any },
+        }),
+        this.userRepo.count({
+          where: { createdAt: MoreThanOrEqual(todayStart) as any },
+        }),
+      ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      totalCustomers,
+      activeCustomers,
+      verifiedCustomers,
+      newThisMonth,
+      newToday,
+    };
   }
 
   async getCustomerStats(): Promise<{

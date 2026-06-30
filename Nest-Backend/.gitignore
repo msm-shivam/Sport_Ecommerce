@@ -38,6 +38,7 @@ lerna-debug.log*
 
 
 uploads
+firebase-service-account.json
 
 # temp directory
 .temp

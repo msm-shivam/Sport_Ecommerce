@@ -6,6 +6,7 @@ import { jwtConfig } from './jwt.config';
 import { redisConfig } from './redis.config';
 import { rabbitmqConfig } from './rabbitmq.config';
 import { mailerConfig } from './mailer.config';
+import { firebaseConfig } from './firebase.config';
 import { validateEnv } from './env.validation';
 
 @Module({
@@ -21,6 +22,7 @@ import { validateEnv } from './env.validation';
         redisConfig,
         rabbitmqConfig,
         mailerConfig,
+        firebaseConfig,
       ],
     }),
   ],
