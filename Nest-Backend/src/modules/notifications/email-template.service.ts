@@ -32,8 +32,12 @@ export class EmailTemplateService {
     return this.templateRepo.save(template);
   }
 
-  async findAll(): Promise<any> {
-    const templates = await this.templateRepo.find({ order: { createdAt: 'DESC' } });
+  async findAll(page = 1, limit = 20): Promise<any> {
+    const [templates, total] = await this.templateRepo.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
     const [totalTemplates, activeTemplates, inactiveTemplates] =
       await Promise.all([
@@ -44,6 +48,7 @@ export class EmailTemplateService {
 
     return {
       templates,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
       totalTemplates,
       activeTemplates,
       inactiveTemplates,

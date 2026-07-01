@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -34,8 +35,11 @@ export class AdminEmailTemplatesController {
   @Get()
   @Permissions(DefaultPermissions.EMAIL_TEMPLATE_VIEW)
   @ApiOperation({ summary: 'List all email templates' })
-  findAll() {
-    return this.emailTemplateService.findAll();
+  findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.emailTemplateService.findAll(page, limit);
   }
 
   @Get(':id')

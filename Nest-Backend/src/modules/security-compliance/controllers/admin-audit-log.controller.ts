@@ -12,7 +12,7 @@ import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { DefaultPermissions } from '../../../common/constants/roles.constants';
 import { AuditLogService } from '../services/audit-log.service';
-import type { AuditLogQueryDto } from '../dto/audit-log-query.dto';
+import { AuditLogQueryDto } from '../dto/audit-log-query.dto';
 
 @ApiTags('Admin — Audit Logs')
 @ApiBearerAuth('JWT')
